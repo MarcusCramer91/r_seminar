@@ -1,5 +1,6 @@
 install.packages(c("BBmisc", "stringr")) #for bbob
-install.packages("Rtools")
+require(BBmisc)
+require(stringr)
 fn = file.path(tempdir(), "bbob_current.tar.gz")
 
 URL = "http://coco.lri.fr/downloads/download15.02/bbobr.tar.gz"
@@ -7,6 +8,9 @@ URL = "http://coco.lri.fr/downloads/download15.02/bbobr.tar.gz"
 download.file(URL, destfile=fn)
 #ATTENTION: requires Rtools for windows
 install.packages(fn, repos=NULL)
+
+#above does not work for me, this does
+install.packages("bbobrpackage.15.03.tar.gz", repos = NULL)
 file.remove(fn)
 
 library("bbob")
