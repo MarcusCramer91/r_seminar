@@ -17,9 +17,9 @@ optimizerCMAES = function(par, fun, lower, upper, max_eval) {
 }
 
 benchmarkResultCMAES = microbenchmark(bbo_benchmark_custom(optimizerCMAES, "cmaes", "cmaes_test", budget = 10, function_ids = 24, 
-                                                      dimensions = 2, instances = 1), times = 100L)
+                                                      dimensions = 2, instances = 1), times = 500L)
 
-mean(benchmarkResultCMAES$time)
+
 
 #############################################
 #do the same for another implementation
@@ -36,6 +36,9 @@ optimizerRCMA = function(par, fun, lower, upper, max_eval) {
 }
 
 benchmarkResultRCMA = microbenchmark(bbo_benchmark_custom(optimizerRCMA, "cmaes", "cmaes_test", budget = 10, function_ids = 24, 
-                                                      dimensions = 2, instances = 1), times = 100L)
+                                                      dimensions = 2, instances = 1), times = 500L)
 
+mean(benchmarkResultCMAES$time)
+#4427806159
 mean(benchmarkResultRCMA$time)
+#7366155667

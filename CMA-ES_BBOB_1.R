@@ -1,6 +1,8 @@
-library(cmaes)
-library(bbob)
 optimizer = function(par, fun, lower, upper, max_eval) {
+    #N = number of dimensions
+    #lambda = 4 + floor(3*log(N)): for two dimensions: 6, for 20 dimensions: 12
+    #max.iter = 100 * N^2
+    #mu = floor(lambda / 2): for two dimensions: 3, for 20 dimensions: 6
     cma_es(par = par, fn = fun, lower = lower, upper = upper, control = list(maxit = max_eval))
 }
 
@@ -49,8 +51,18 @@ bbo_benchmark_custom(optimizer, "cmaes", "cmaes_test", budget = 10, function_ids
 
 #internal stopping criterion only works if budget <= 100 * Dimension^2 * population
 optimizer2 = function(par, fun, lower, upper, max_eval) {
-  cma_es(par = par, fn = fun, lower = lower, upper = upper, control = list(mu = 10, lambda = 10))
+  cma_es(par = par, fn = fun, lower = lower, upper = upper, control = list(mu = 15, lambda = 15))
 }
 
 
-bbo_benchmark_custom(optimizer2, "cmaes", "cmaes_test", budget = 1000, function_ids = 24)
+bbo_benchmark_custom(optimizer2, "cmaes", "cmaes_test", budget = 10, function_ids = 1)
+
+optimizer3 = function(par, fun, lower, upper, max_eval) {
+  #requires manual initialization of the functions
+  #Sphere function
+  fun = makeSphereFunction(2)
+  cmaes(objective.fun = fun, start.point = par)
+}
+
+
+bbo_benchmark_custom(optimizer3, "cmaes", "cmaes_test", budget = 10, function_ids = 24, dimension = 2, instances = 1)
