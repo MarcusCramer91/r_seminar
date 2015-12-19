@@ -1,3 +1,9 @@
+if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
+install_github(repo = "MarcusCramer91/cmaesr")
+require(cmaesr)
+require(devtools)
+
+
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
                        instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, maxFE = NULL) {
@@ -14,11 +20,11 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   for (i in 1:length(function_ids)) {
     for (j in 1:length(dimensions)) {
       for (k in 1:length(instances)) {
+        print(data_directory)
         result = optimizer(dimensions, instances, function_ids, maxit, maxFE, stopFitness, path = data_directory)
         pbar$set(currentRun)
         currentRun = currentRun + 1
         outputFile = file.path(data_directory, paste("CMAES_output_", i, "_", j, ".txt", sep = ""))
-        print(outputFile)
         write(result, file = outputFile, append = TRUE)
       }
     }
@@ -42,20 +48,18 @@ optimizer = function(dimension, instance, function_id, maxit, maxFE, stopFitness
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)
     condition2 = stopOnOptValue(optValue, stopFitness)
-    result = cmaes(fun, monitor = monitor, control = list (stop.ons = c(condition1, condition2)))
+    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)))
   }
-  else if (!is.null(condition1)) result = cmaes(fun, monitor = monitor, control = list (stop.ons = condition1))
+  else if (!is.null(condition1)) {
+    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1)))
+  }
   #use default if no stopping criterion is defined
   else result = cmaes(fun, monitor = monitor)
   return(result)
 }
 
+
 bbob_custom(optimizer, "cmaes", "C:/Users/Marcus/Desktop/monitortest", dimensions = 2, instances = 1, function_ids = 1, 
             maxit = NULL, stopFitness = NULL, maxFE = NULL)
 
-catf(paste("Starting optimization. Instance:", instance_id), file = path)
-
-require(devtools)
-install_github(repo = "MarcusCramer91/cmaesr")
-require(cmaesr)
 

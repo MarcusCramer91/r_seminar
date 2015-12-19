@@ -1,46 +1,25 @@
+#benchmarks the cpu times of cmaes, rcma and cmaesr packages
 if (!"cmaes" %in% rownames(installed.packages())) install.packages("cmaes")
 if (!"bbob" %in% rownames(installed.packages())) install.packages("bbob")
 if (!"rCMA" %in% rownames(installed.packages())) install.packages("rCMA")
 if (!"rJava" %in% rownames(installed.packages())) install.packages("rJava")
 if (!"microbenchmark" %in% rownames(installed.packages())) install.packages("microbenchmark")
+if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
+if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
+install_github(repo = "MarcusCramer91/cmaesr")
 
 require(cmaes)
 require(bbob)
 require(rCMA)
 require(rJava)
 require(microbenchmark)
+require(smoof)
+require(devtools)
+require(cmaesr)
 
-
-#internal stopping criterion only works if budget <= 100 * Dimension^2 * population
-optimizerCMAES = function(par, fun, lower, upper, max_eval) {
-  cma_es(par = par, fn = fun, lower = lower, upper = upper, control = list(mu = 15, lambda = 15))
-}
-
-benchmarkResultCMAES = microbenchmark(bbo_benchmark_custom(optimizerCMAES, "cmaes", "cmaes_test", budget = 10, function_ids = 24, 
-                                                      dimensions = 2, instances = 1), times = 500L)
-
-
-
-#############################################
-#do the same for another implementation
-#for the two dimensional case
-optimizerRCMA = function(par, fun, lower, upper, max_eval) {
-  cma = cmaNew()
-  cmaSetDimension(cma, 2)
-  #Define according to cmaes (100*D^2)
-  cmaSetStopMaxFunEvals(cma, 100*2^2)
-  #Set population size like in cmaes (default = 15)
-  cmaSetPopulationSize(cma, 15)
-  cmaInit(cma)
-  res1 = cmaOptimDP(cma, fitFunc = fun)
-}
-
-benchmarkResultRCMA = microbenchmark(bbo_benchmark_custom(optimizerRCMA, "cmaes", "cmaes_test", budget = 10, function_ids = 24, 
-                                                      dimensions = 2, instances = 1), times = 500L)
-
-############################################
-#do the same for Bossek version
-bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
+#customized bbob version that does not require any c-code and should be much faster 
+#than the framework provided by the bbob package (this version is without result printing)
+bbob_custom2 = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
                        instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, maxFE = NULL) {
   dir.create(data_directory, showWarnings = FALSE)
   dimensions = sort(dimensions, decreasing = FALSE)
@@ -58,13 +37,43 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
         result = optimizer(dimensions, instances, function_ids, maxit, maxFE, stopFitness, path = data_directory)
         pbar$set(currentRun)
         currentRun = currentRun + 1
-        outputFile = file.path(data_directory, paste("CMAES_output_", i, "_", j, ".txt", sep = ""))
-        print(outputFile)
-        write(result, file = outputFile, append = TRUE)
       }
     }
   }
 }
+
+#internal stopping criterion only works if budget <= 100 * Dimension^2 * population
+optimizerCMAES = function(dimensions, instances, function_ids, maxit, maxFE, stopFitness, path) {
+  fn = makeBBOBFunction(dimensions, function_ids, instances)
+  cma_es(par = runif(dimensions, -5, 5), fn = fun, lower = -5, upper = 5, 
+         control = list(maxit = maxit))
+}
+
+benchmarkResultCMAES = microbenchmark(bbob_custom2(optimizerCMAES, "cmaes", "cmaes_test", dimensions = 2, 
+                                                  instances = 1, function_ids = 24, maxit = 10), times = 500L)
+
+
+#############################################
+#do the same for another implementation
+#for the two dimensional case
+optimizerRCMA = function(dimension, instances, function_ids, maxit, maxFE, stopFitness, path) {
+  fun = makeBBOBFunction(dimension, function_ids, instances)
+  cma = cmaNew()
+  cmaSetDimension(cma, 2)
+  #Define according to cmaes (100*D^2)
+  cmaSetStopMaxFunEvals(cma, maxit * 10)
+  #Set population size to 10 in order to know the runtime
+  cmaSetPopulationSize(cma, 10)
+  cmaInit(cma)
+  res1 = cmaOptimDP(cma, fitFunc = fun)
+}
+
+benchmarkResultRCMA = microbenchmark(bbob_custom2(optimizerRCMA, "cmaes", "cmaes_test", dimensions = 2, 
+                                                  instances = 1, function_ids = 24, maxit = 10), times = 500L)
+
+############################################
+#do the same for Bossek version
+
 
 optimizer = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path) {
   if(!grepl(":/", path, fixed = TRUE)) path = file.path(getwd(), path)
@@ -83,24 +92,23 @@ optimizer = function(dimension, instance, function_id, maxit, maxFE, stopFitness
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)
     condition2 = stopOnOptValue(optValue, stopFitness)
-    result = cmaes(fun, monitor = monitor, control = list (stop.ons = c(condition1, condition2)))
+    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)))
   }
   else if (!is.null(condition1)) {
-    print(condition1)
-    result = cmaes(fun, monitor = monitor, control = list (stop.ons = condition1))
+    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1)))
   }
   #use default if no stopping criterion is defined
   else result = cmaes(fun, monitor = monitor)
   return(result)
 }
 
-benchmarkResultCMAESr = microbenchmark(bbob_custom(optimizer, "cmaes", "C:/Users/Marcus/Desktop/monitortest", 
-                                                   dimensions = 2, instances = 1, function_ids = 1, 
-                                                   maxit = 10, stopFitness = NULL, maxFE = NULL), times = 500L)
+benchmarkResultCMAESr = microbenchmark(bbob_custom2(optimizer, "cmaes", "C:/Users/Marcus/Desktop/monitortest", 
+                                                   dimensions = 2, instances = 1, function_ids = 24, 
+                                                   maxit = 10), times = 500L)
 
 mean(benchmarkResultCMAES$time)
-#4427806159
+#6789752
 mean(benchmarkResultRCMA$time)
 #7366155667
 mean(benchmarkResultCMAESr$time)
-#128406002
+#11560471
