@@ -1,4 +1,9 @@
 #benchmarks the cpu times of cmaes, rcma and cmaesr packages
+#findings: 
+#1) Using a customized version of the bbob testbed (purely R code) is much faster than using the BBOB package 
+#(factor 340) for CMAES (less significant under MAC)
+#this is because BBOB uses some more detailled event logging (probably) and some additonal stuff in C-code
+#2) rCMA is much slower than CMAES (factor 40) and CMAESr, CMAES is faster than CMAESr (but only factor 2)
 if (!"cmaes" %in% rownames(installed.packages())) install.packages("cmaes")
 if (!"bbob" %in% rownames(installed.packages())) install.packages("bbob")
 if (!"rCMA" %in% rownames(installed.packages())) install.packages("rCMA")
@@ -6,7 +11,6 @@ if (!"rJava" %in% rownames(installed.packages())) install.packages("rJava")
 if (!"microbenchmark" %in% rownames(installed.packages())) install.packages("microbenchmark")
 if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
 if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
-install_github(repo = "MarcusCramer91/cmaesr")
 
 require(cmaes)
 require(bbob)
@@ -16,6 +20,7 @@ require(microbenchmark)
 require(smoof)
 require(devtools)
 require(cmaesr)
+install_github(repo = "MarcusCramer91/cmaesr")
 
 #customized bbob version that does not require any c-code and should be much faster 
 #than the framework provided by the bbob package (this version is without result printing)
@@ -51,6 +56,44 @@ optimizerCMAES = function(dimensions, instances, function_ids, maxit, maxFE, sto
 
 benchmarkResultCMAES = microbenchmark(bbob_custom2(optimizerCMAES, "cmaes", "cmaes_test", dimensions = 2, 
                                                   instances = 1, function_ids = 24, maxit = 10), times = 500L)
+
+#do the same testing with the original bbob framework
+bbo_benchmark_original = function (optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
+                                   instances = c(1:5, 41:50), replications = 1L, budget = 1e+07, noisy = FALSE, function_ids) 
+{
+  nruns <- length(dimensions) * length(function_ids)
+  current_run <- 1
+  pbar <- makeProgressBar(min = 1, max = nruns)
+  for (dimension in sort(dimensions, decreasing = FALSE)) {
+    for (function_id in function_ids) {
+      pbar$set(current_run)
+      current_run <- current_run + 1
+      for (instance_id in instances) {
+        for (run in 1:replications) {
+          bbob_setup_experiment(algorithm_id, data_directory, 
+                                function_id, instance_id, dimension)
+          while (bbob_n_evaluations() < budget && bbob_optimality_gap() > 
+                 1e-08) {
+            if (bbob_n_evaluations() > 0) 
+              bbob_log_restart("independent restart")
+            par <- runif(dimension, -4, 4)
+            optimizer(par, bbob_f_eval, lower = rep(-5, dimension), upper = rep(5, dimension), 
+                      budget)
+          }
+          bbob_end_experiment()
+        }
+      }
+    }
+  }
+}
+
+optimizerCMAES = function(par, fun, lower, upper, max_eval) {
+  cma_es(par = par, fn = fun, lower = lower, upper = upper, control = list(maxit = max_eval))
+}
+
+benchmarkResultCMAESOriginalBBOB = microbenchmark(bbo_benchmark_original(optimizerCMAES, "cmaes", "cmaes_test", 
+                                                           budget = 10, function_ids = 24, dimensions = 2, 
+                                                           instances = 1), times = 500L)
 
 
 #############################################
@@ -108,7 +151,9 @@ benchmarkResultCMAESr = microbenchmark(bbob_custom2(optimizer, "cmaes", "C:/User
 
 mean(benchmarkResultCMAES$time)
 #6789752
+mean(benchmarkResultCMAESOriginalBBOB$time)
+#2311153348
 mean(benchmarkResultRCMA$time)
-#7366155667
+#282503096
 mean(benchmarkResultCMAESr$time)
 #11560471
