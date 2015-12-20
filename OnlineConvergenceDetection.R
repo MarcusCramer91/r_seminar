@@ -1,7 +1,3 @@
-# install and load cma_es from git repository
-#devtools::install_github("jakobbossek/cmaesr")
-#library(cmaesr)
-
 stopOnOCD = function(varLimit, nPreGen, maxGen)
   {
   # Initialize OCD
@@ -22,7 +18,7 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
   assertInt(maxGen, na.ok = FALSE)
   return(makeStoppingCondition(
     name = "Online Convergence Detection",
-    message = sprintf("OCD successful", varLimit),
+    message = sprintf("OCD successfully: Variance limit %f", varLimit),
     stop.fun = function(envir = parent.frame()) {
       # f a specific indicator P Ij does not use a reference set and evaluates each set separately (e.g., the hypervolume indicator), 
       # the difference between the indicator value of the preceding and the current set is calculated and stored in PIj,i.
@@ -40,9 +36,6 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
           }
           pvalue_currentgen = pChi2(varLimit, PI_currentgen)
           pvalue_precedinggen = pChi2(varLimit, PI_precedinggen)
-          print(pvalue_precedinggen)
-          print(pvalue_currentgen)
-          print(pvalue_currentgen <= alpha && pvalue_precedinggen <= alpha)
           return (pvalue_currentgen <= alpha && pvalue_precedinggen <= alpha)
         }
         else{
