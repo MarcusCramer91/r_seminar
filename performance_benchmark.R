@@ -145,15 +145,19 @@ optimizer = function(dimension, instance, function_id, maxit, maxFE, stopFitness
   return(result)
 }
 
-benchmarkResultCMAESr = microbenchmark(bbob_custom2(optimizer, "cmaes", "C:/Users/Marcus/Desktop/monitortest", 
+benchmarkResultCMAESr = microbenchmark(bbob_custom2(optimizer, "cmaes", "monitortest", 
                                                    dimensions = 2, instances = 1, function_ids = 24, 
                                                    maxit = 10), times = 500L)
 
 mean(benchmarkResultCMAES$time)
+#Andi:33940701
 #6789752
 mean(benchmarkResultCMAESOriginalBBOB$time)
+#Andi:13120296
 #2311153348
 mean(benchmarkResultRCMA$time)
+#Andi:255478675
 #282503096
 mean(benchmarkResultCMAESr$time)
+#Andi:16460646
 #11560471
