@@ -31,9 +31,10 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
           }else{
             PI_preceding_gen = PI_current_gen
           }
-          # calculate the p-values of 
+          # perform chi2 variance tests and return corresponding p-values
           pvalue_current_gen = pChi2(varLimit, PI_current_gen)
           pvalue_preceding_gen = pChi2(varLimit, PI_preceding_gen)
+          # return TRUE, i.e. stop cmaes exectuion, if p-value is below specified significance level alpha
           return (pvalue_current_gen <= alpha && pvalue_preceding_gen <= alpha)
         }
         else{
@@ -46,7 +47,9 @@ stopOnOCD = function(varLimit, nPreGen, maxGen)
 pChi2 <- function (varLimit, PI) {
   # Determine degrees of freedom
   N = length(PI)-1
+  # calculate test statistic
   Chi = (var(PI)*N)/varLimit
+  # get p-value of corresponding chi2 test
   p = pchisq(Chi, N, lower.tail = TRUE)
   return (p)
 }
