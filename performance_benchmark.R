@@ -50,7 +50,7 @@ bbob_custom2 = function(optimizer, algorithm_id, data_directory, dimensions = c(
 #internal stopping criterion only works if budget <= 100 * Dimension^2 * population
 optimizerCMAES = function(dimensions, instances, function_ids, maxit, maxFE, stopFitness, path) {
   fn = makeBBOBFunction(dimensions, function_ids, instances)
-  cma_es(par = runif(dimensions, -5, 5), fn = fun, lower = -5, upper = 5, 
+  cma_es(par = runif(dimensions, -5, 5), fn = fn, lower = -5, upper = 5, 
          control = list(maxit = maxit))
 }
 
