@@ -7,6 +7,7 @@ res = cmaes(
     stop.ons = list(stopOnOCD(0.0001, 18, 1000))
   )
 )
+getGlobalOptimum(fn)
 
 
 fn = makeBBOBFunction(4, 24, 4)
