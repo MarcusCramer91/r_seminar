@@ -1,48 +1,45 @@
 stopOnOCD = function(varLimit, nPreGen, maxGen)
   {
-  # Initialize OCD
-  # The variance limit VarLimit corresponds to the desired approximation accuracy in
-  # single-objective optimization, but does not require knowledge about the actual
-  # minima of the objectives. The algorithm stops when the standard deviation of
-  # the indicator values over the given time window of nPreGen generations is significantly below sqrt(VarLimit).
+  # Check if varLimit is a single numeric
   assertNumber(varLimit, na.ok = FALSE)
-  # nPreGen determines the number of preceding generations for comparisons
+  # Check if nPreGen is a single integerish value
   assertInt(nPreGen, na.ok = FALSE)
-  # significance level alpha for the tests (established levels are alpha= 0.05 and alpha=0.01). As proposed by Wagner and Trautmann (2010),
-  # the default value will be alpha = 0.05. This value should not be tuned or adjusted by the user.
-  alpha = 0.01
-  p = numeric()
-  # MaxGen specifies the maximum number of function evaluations. However, this value is optional in case the upper limit 
-  # is specified by an other stopping condition (e.g. stopOnMaxEvals)
-  # implement optionality?!
+  # initialize significane level alpha with default value 0.05
+  alpha = 0.05
+  # Check if maxGen is a single integerish value
   assertInt(maxGen, na.ok = FALSE)
+  # return stopping condition being compatible with cma-es implementation by Jakob Bossek
   return(makeStoppingCondition(
     name = "Online Convergence Detection",
     message = sprintf("OCD successfully: Variance limit %f", varLimit),
     stop.fun = function(envir = parent.frame()) {
-      # f a specific indicator P Ij does not use a reference set and evaluates each set separately (e.g., the hypervolume indicator), 
-      # the difference between the indicator value of the preceding and the current set is calculated and stored in PIj,i.
+      # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
       if(envir$iter >= maxGen){
         return(envir$iter >= maxGen)
       }
-      if(!is.null(envir$iter)){
+      # Check if number of iterations is greater than user-defined nPreGen
         if(envir$iter > nPreGen){
+          # PI_all is a vector with one entry for each generation. 
+          # PI_all stores the difference between the performance indicator value of the preceding and the current generation.
+          # Here: In single objective optimization, the performance indicator of interest is the best fitness value of each generation.
           PI_all = rbind(envir$generation.fitness[[1]], cbind(unlist(envir$generation.fitness))) - rbind(cbind(unlist(envir$generation.fitness)), envir$best.fitness)
-          PI_currentgen = PI_all[(envir$iter-nPreGen):envir$iter]
+          # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
+          PI_current_gen = PI_all[(envir$iter-nPreGen):envir$iter]
           if((envir$iter - nPreGen) > 1){
-            PI_precedinggen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 1)]
+            # PI_preceding_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the last generation i-1.
+            PI_preceding_gen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 1)]
           }else{
-            PI_precedinggen = PI_currentgen
+            PI_preceding_gen = PI_current_gen
           }
-          pvalue_currentgen = pChi2(varLimit, PI_currentgen)
-          pvalue_precedinggen = pChi2(varLimit, PI_precedinggen)
-          return (pvalue_currentgen <= alpha && pvalue_precedinggen <= alpha)
+          # calculate the p-values of 
+          pvalue_current_gen = pChi2(varLimit, PI_current_gen)
+          pvalue_preceding_gen = pChi2(varLimit, PI_preceding_gen)
+          return (pvalue_current_gen <= alpha && pvalue_preceding_gen <= alpha)
         }
         else{
           return(FALSE)
           }
-      }
-    }
+       }
   ))
 }
 
@@ -53,3 +50,4 @@ pChi2 <- function (varLimit, PI) {
   p = pchisq(Chi, N, lower.tail = TRUE)
   return (p)
 }
+

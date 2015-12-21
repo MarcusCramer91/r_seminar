@@ -12,3 +12,11 @@
 vignettes/*.html
 vignettes/*.pdf
 .Rproj.user
+
+*.tdat
+
+*.dat
+
+*.rdat
+
+*.info
