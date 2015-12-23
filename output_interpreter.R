@@ -48,6 +48,12 @@ readOutput = function(file) {
   #remove NA rows
   data = data[!is.na(data[,1]),]
   
+  #get number of restarts
+  #indicated by a -1 value in the first column
+  allRestarts = data[which(data[,1] == -1),2]
+  #remove restart rows
+  data = data[-which(data[,1] == -1),]
+  
   #clean fitness values
   #due to rounding errors in the cmaesr there might be fitness values of less than zero 
   #(smaller than global optimum), which of course, does not make sense
@@ -122,7 +128,8 @@ readOutput = function(file) {
                 shortestRunEval = shortestRunEval, avgRunEval = avgRunEval, sdRunsEval = sdRunsEval, 
                 allStagnations = allStagnations, longestStagnation = longestStagnation,
                 shortestStagnation = shortestStagnation, avgStagnation = avgStagnation, 
-                sdStagnations = sdStagnations, allConvergence = allConvergence, avgConvergence = avgConvergence)
+                sdStagnations = sdStagnations, allConvergence = allConvergence, avgConvergence = avgConvergence,
+                allRestarts = allRestarts)
   class(result) = "single_bbob_result"
   return(result)
 }
@@ -186,6 +193,12 @@ aggregateResults = function(allResults) {
   }
   aggregatedAvgConvergence = apply(aggregatedAllConvergence, 1, mean)
   
+  #aggregate restarts
+  aggregatedAllRestarts = integer(0)
+  for (i in 1:length(allResults)) {
+    aggregatedAllRestarts = c(aggregatedAllRestarts, allResults[[i]]$allRestarts)
+  }  
+  
   #format return value
   result = list(aggregatedAllBest = aggregatedAllBest, aggregatedAvgBest = aggregatedAvgBest,
                 aggregatedOverallBest = aggregatedOverallBest, aggregatedOverallWorst = aggregatedOverallWorst,
@@ -200,7 +213,8 @@ aggregateResults = function(allResults) {
                 aggregatedAvgStagnation = aggregatedAvgStagnation,
                 aggregatedSDStagnation = aggregatedSDStagnation, 
                 aggregatedAllConvergence = aggregatedAllConvergence,
-                aggregatedAvgConvergence = aggregatedAvgConvergence)
+                aggregatedAvgConvergence = aggregatedAvgConvergence,
+                aggregatedAllRestarts = aggregatedAllRestarts)
   return(result)
 }
 
@@ -253,7 +267,33 @@ loadAllResults = function(usedFunctions, usedDimensions, path) {
   return(allResults)
 }
 
+#aggregate avgBest, avgRun, avgRunEval, Convergence, Stagnation per function
+aggregatePerFunction = function(results, nFunctions, nDimensions) {
+  #todo
+}
 
+#get convergence averaged per function (over all dimensions)
+getAggregatedConvergenceFunctions = function(results, nFunctions, nDimensions) {
+  allConvergence = results$aggregatedAllConvergence
+  aggregatedConvergenceFunctions = matrix(nrow = nrow(allConvergence), ncol = nFunctions, data = 0)
+  for (i in 1:nFunctions) {
+    aggregatedConvergenceFunctions[,i] = apply(allConvergence[,((i-1) * nDimensions + 1):(i * nDimensions)], 
+                                               1, mean)
+  }
+  return(aggregatedConvergenceFunctions)
+}
+
+#get best results averaged per function
+getAvgBestPerFunction = function(results, nFunctions, nDimensions)
+  avgBest = double(0)
+for (i in 1:(nFunctions*nDimensions)) {
+  avgBest = c(avgBest, mean(CMAES_only_default_aggResult$aggregatedAllBest[((i-1)*nInstances+1):(i*nInstances)]))
+}
+
+#get best results averaged average best per dimension
+getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
+  
+}
 ####some testing
 ecdfres = extractECDFofFunctions(allConvergence)
 plot(ecdfres)

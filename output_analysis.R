@@ -34,11 +34,49 @@ lines(CMAES_only_default_cumulativeDistribution6, col = "darkgoldenrod", type = 
 lines(CMAES_only_default_cumulativeDistribution7, col = "grey", type = "l")
 lines(CMAES_only_default_cumulativeDistribution8, col = "deeppink", type = "l")
 
+##############################
+#analyze convergence behavior on different functions
+aggregatedConvergenceFunctions = getAggregatedConvergenceFunctions(CMAES_only_default_aggResult, 
+                                                                   nFunctions = 24, nDimensions = 4)
+
+#add information on FEs
+plot(log(aggregatedConvergenceFunctions[
+  1:CMAES_only_default_aggResult$aggregatedAllRuns,1]+1), type = "l")
+plot(log(aggregatedConvergenceFunctions[,2]+1), type = "l")
+plot(log(aggregatedConvergenceFunctions[,3]+1), type = "l")
+plot(log(aggregatedConvergenceFunctions[,4]+1), type = "l")
+plot(log(aggregatedConvergenceFunctions[,5]+1), type = "l")
+plot(log(aggregatedConvergenceFunctions[,6]+1), type = "l")
+plot(log(aggregatedConvergenceFunctions[,7]+1), type = "l") #stagnates around 1
+plot(log(aggregatedConvergenceFunctions[,8]+1), type = "l") #stagnates clearly above 0
+plot(log(aggregatedConvergenceFunctions[,9]+1), type = "l") 
+plot(log(aggregatedConvergenceFunctions[,10]+1), type = "l") #stagnaties around 11
+plot(log(aggregatedConvergenceFunctions[,11]+1), type = "l") #stagnaties around 2
+plot(log(aggregatedConvergenceFunctions[,12]+1), type = "l") #stagnaties around 7
+plot(log(aggregatedConvergenceFunctions[,13]+1), type = "l") #stagnaties above 3
+plot(log(aggregatedConvergenceFunctions[,14]+1), type = "l")
+plot(log(aggregatedConvergenceFunctions[,15]+1), type = "l") #stagnaties around 3
+plot(log(aggregatedConvergenceFunctions[,16]+1), type = "l") #stagnaties around 0.5
+plot(log(aggregatedConvergenceFunctions[,17]+1), type = "l") #stagnaties around 0.5
+plot(log(aggregatedConvergenceFunctions[,18]+1), type = "l") #stagnaties around 2.5
+plot(log(aggregatedConvergenceFunctions[,19]+1), type = "l") #stagnaties around 0.5
+plot(log(aggregatedConvergenceFunctions[,20]+1), type = "l") #stagnaties around 1
+plot(log(aggregatedConvergenceFunctions[,21]+1), type = "l") #stagnaties around 2
+plot(log(aggregatedConvergenceFunctions[,22]+1), type = "l") #stagnaties around 2.8
+plot(log(aggregatedConvergenceFunctions[,23]+1), type = "l") #stagnaties around 0.75
+plot(log(aggregatedConvergenceFunctions[,24]+1), type = "l") #stagnaties around 3
+
+#show stagnation for the example of one function 10 dimension 20 run
+file = "./CMAES_only_default/CMAES_output_10_20.txt"
+fun10_dim20_singleResult = readOutput(file)
+
 #plot runtime
-boxplot(CMAES_only_default_aggResult$aggregatedAllRuns)
+boxplot(x = CMAES_only_default_aggResult$aggregatedAllRunsEval)
 
 #plot stagnation time
-boxplot(CMAES_only_default_aggResult$aggregatedAllStagnation)
+#multiply by eval/iter ratio
+boxplot(CMAES_only_default_aggResult$aggregatedAllStagnation 
+        * (CMAES_only_default_aggResult$aggregatedAllRunsEval / CMAES_only_default_aggResult$aggregatedAllRuns))
 plot(ecdf(CMAES_only_default_aggResult$aggregatedAllStagnation))
 hist(log(CMAES_only_default_aggResult$aggregatedAllStagnation))
 
@@ -82,8 +120,12 @@ for (i in 1:nDimensions) {
   relevantIndexes = relevantIndexes[!relevantIndexes %in% outlierVector]
   averagesDim = c(averagesDim, mean(avgBest[relevantIndexes]))
 }
+
 #add one in order to avoid large negative values for log -> better readibility of the plot
 plot(c(2, 5, 10, 20), log(averagesDim+1), axes = FALSE)
+
+
+
 #testing lists
 #they are a bitch
 a = list(a1 = c(1,2), a2 = c(3,4))

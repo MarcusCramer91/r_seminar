@@ -11,6 +11,6 @@ bbob_custom(optimizerRS, "random search", "Random_Search_234204", function_ids =
             dimensions = c(2,5,10,20), maxFE = 234204)
 
 
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_mergetest", 
+suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "logtest", 
                              maxit = NULL, stopFitness = NULL, maxFE = NULL, 
-                             function_ids = 5, instances = 1, dimensions = 20, debug.logging = TRUE))
+                             function_ids = 1, instances = 1, dimensions = 2, debug.logging = TRUE))
