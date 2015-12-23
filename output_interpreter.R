@@ -1,4 +1,10 @@
 #file = "C:/Users/M/Documents/r_seminar/2015-12-21_standard_BBOB_run/CMAES_output_1_1.txt"
+
+################### Andi #######################
+file = "/Users/Andreas/Documents/Uni/R/2015-12-23_CMAES_default_run/CMAES_output_1_2.txt"
+file1 = "/Users/Andreas/Documents/Uni/R/2015-12-23_CMAES_default_run/CMAES_output_1_5.txt"
+################### Andi #######################
+
 #read file
 #data = read.table(file, skip = 1, fill = TRUE)
 
@@ -15,6 +21,7 @@
 #convert everything to integer
 #values that are no integers are indicative of a new function run
 #dataframe should be separated at these points
+
 if (!"BBmisc" %in% rownames(installed.packages())) install.packages("BBmisc")
 require(BBmisc)
 
@@ -277,3 +284,18 @@ for (i in 1:ncol(allConvergence)) {
 CMAES_only_default_results[[96]]$allConvergence[nrow(CMAES_only_default_results[[96]]$allConvergence),]
 CMAES_only_default_results[[1]]$allConvergence[nrow(CMAES_only_default_results[[1]]$allConvergence),]
 CMAES_only_default_aggResult$aggregatedAllConvergence[nrow(CMAES_only_default_aggResult$aggregatedAllConvergence),]
+
+
+###### testing Andi
+fitnessGap = 1e-08
+res <- readOutput(file)
+res2 <- readOutput(file1)
+allresults <- list(res, res2)
+CMAES_only_default_aggResult <- aggregateResults(allresults)
+allConvergence <- CMAES_only_default_aggResult$aggregatedAllConvergence
+ecdfres <- extractECDFofFunctions(CMAES_only_default_aggResult, fitnessGap)
+plot(ecdfres)
+res$allBest
+res$avgBest
+sum(res$allBest)/length(res$allRuns)
+res$allRuns
