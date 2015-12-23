@@ -150,14 +150,14 @@ benchmarkResultCMAESr = microbenchmark(bbob_custom2(optimizer, "cmaes", "monitor
                                                    maxit = 10), times = 500L)
 
 mean(benchmarkResultCMAES$time)
-#Andi:33940701
-#6789752
+#6789752 (Marcus)
+#33940701 (Andi)
 mean(benchmarkResultCMAESOriginalBBOB$time)
-#Andi:13120296
-#2311153348
+#2311153348 (Marcus)
+#13120296 (Andi)
 mean(benchmarkResultRCMA$time)
-#Andi:255478675
-#282503096
+#282503096 (Marcus)
+#255478675 (Andi)
 mean(benchmarkResultCMAESr$time)
-#Andi:16460646
-#11560471
+#11560471 (Marcus)
+#16460646 (Andi)
