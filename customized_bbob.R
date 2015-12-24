@@ -8,18 +8,6 @@ require(bbob)
 require(snow)
 require(parallel)
 
-
-#default run of CMAES with only default stopping criteria
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_default_run", 
-                             maxit = NULL, stopFitness = NULL, maxFE = NULL, 
-                             function_ids = 1, instances = 1:15, dimensions = c(5)))
-
-#run of random search with 100000 function evaluations
-#this result is used for comparison with simple random search
-#since results are purely random anyway, only one instance is run
-bbob_custom(optimizerRS, "random search", "Random_Search_100000", function_ids = 1:24, instances = 1,
-            dimensions = c(2,5,10,20), maxFE = 100000)
-
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
                        instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
