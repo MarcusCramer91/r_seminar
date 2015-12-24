@@ -161,3 +161,57 @@ mean(benchmarkResultRCMA$time)
 mean(benchmarkResultCMAESr$time)
 #11560471 (Marcus)
 #16460646 (Andi)
+
+
+#################################
+#benchmark parallelization
+res_parallel = 
+  microbenchmark(suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "parallel_benchmark", 
+                                      maxit = NULL, stopFitness = 1e-08, maxFE = 100, 
+                                      function_ids = 1, instances = 1:15, dimensions = 2,
+                                      max_restarts = 0, restart_multiplier = 1, 
+                                      restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
+                                                           "conditionCov", "indefCovMat"), debug.logging = FALSE)))
+
+res_non_parallel = 
+  microbenchmark(suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "parallel_benchmark", 
+                                     maxit = NULL, stopFitness = 1e-08, maxFE = 100, 
+                                     function_ids = 1, instances = 1:15, dimensions = 2,
+                                     max_restarts = 0, restart_multiplier = 1, 
+                                     restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
+                                                        "conditionCov", "indefCovMat"), debug.logging = FALSE)))
+
+mean(res_parallel$time)
+#3886896148
+
+mean(res_non_parallel$time)
+#3354195999
+
+#not really an increase, but expected to become more significant for higher individual runtimes
+#therefore, increase maxFE by factor 10
+
+res_parallel2 = 
+  microbenchmark(suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "parallel_benchmark", 
+                                       maxit = NULL, stopFitness = 1e-08, maxFE = 1000, 
+                                       function_ids = 1, instances = 1:15, dimensions = 2,
+                                       max_restarts = 0, restart_multiplier = 1, 
+                                       restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
+                                                            "conditionCov", "indefCovMat"), debug.logging = FALSE)))
+
+res_non_parallel2 = 
+  microbenchmark(suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "parallel_benchmark", 
+                                        maxit = NULL, stopFitness = 1e-08, maxFE = 1000, 
+                                        function_ids = 1, instances = 1:15, dimensions = 2,
+                                        max_restarts = 0, restart_multiplier = 1, 
+                                        restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
+                                                             "conditionCov", "indefCovMat"), debug.logging = FALSE)))
+
+
+mean(res_parallel2$time)
+#6466021848
+
+mean(res_non_parallel2$time)
+#7955315578
+
+#significant increase for maxFE = 1000; we use maxFE = 100000 so this is expected to make a difference
+#-> use parallel bbob
