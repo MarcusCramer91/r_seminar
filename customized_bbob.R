@@ -62,6 +62,7 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)$value
     condition2 = stopOnOptValue(optValue, stopFitness)
+<<<<<<< HEAD
     result = cmaes(fun, monitor = monitor, debug.logging = debug.logging,
                    control = list (stop.ons = c(list(condition1, condition2),
                                                            getDefaultStoppingConditions()), 
@@ -76,6 +77,14 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
                                                            max.restarts = max_restarts,
                                                            restart.triggers = restart_triggers,
                                                            restart.multiplier = restart_multiplier))
+=======
+    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)), 
+                   debug.logging = debug.logging)
+  }
+  else if (!is.null(condition1)) {
+    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1)), 
+                   debug.logging = debug.logging)
+>>>>>>> 39667cf884634c1c40417a34959a00f9647e3ec7
   }
   #use default if no stopping criterion is defined
   else result = cmaes(fun, monitor = monitor, debug.logging = debug.logging)

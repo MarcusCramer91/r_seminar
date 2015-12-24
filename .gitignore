@@ -20,3 +20,5 @@ vignettes/*.pdf
 *.rdat
 
 *.info
+
+.RData

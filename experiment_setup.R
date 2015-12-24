@@ -1,7 +1,7 @@
 #default run of CMAES with only default stopping criteria
 suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_default_run", 
                              maxit = NULL, stopFitness = NULL, maxFE = NULL, 
-                             function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20)))
+                             function_ids = 1, instances = 1:15, dimensions = c(5)))
 
 #run of random search with 100000 function evaluations
 #this result is used for comparison with simple random search
@@ -38,5 +38,12 @@ suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_restart_wi
                              restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
                                                   "conditionCov", "indefCovMat"), debug.logging = FALSE))
 
+suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_mergetest", 
+                             maxit = NULL, stopFitness = NULL, maxFE = NULL, 
+                             function_ids = 5, instances = 1, dimensions = 20, debug.logging = TRUE))
 
+# testing Andi
+suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_OCD", 
+                             maxit = , stopFitness = NULL, maxFE = NULL, OCD = TRUE,
+                             function_ids = 1, instances = 1, dimensions = c(2,5)))
 
