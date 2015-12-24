@@ -299,3 +299,5 @@ res$allBest
 res$avgBest
 sum(res$allBest)/length(res$allRuns)
 res$allRuns
+res$allRunsEval
+res$allBest
