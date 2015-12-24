@@ -4,9 +4,12 @@
 #get all results
 CMAES_only_default_results = 
   loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_only_default")
+RS_results = 
+  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./Random_Search_234204")
 
 #aggregate results
 CMAES_only_default_aggResult = aggregateResults(CMAES_only_default_results)
+RS_results_aggregated = aggregateResults(RS_results)
 
 #get data for cumulative distribution
 CMAES_only_default_cumulativeDistribution1 = extractECDFofFunctions(
@@ -66,11 +69,35 @@ plot(log(aggregatedConvergenceFunctions[,22]+1), type = "l") #stagnaties around 
 plot(log(aggregatedConvergenceFunctions[,23]+1), type = "l") #stagnaties around 0.75
 plot(log(aggregatedConvergenceFunctions[,24]+1), type = "l") #stagnaties around 3
 
-#show stagnation for the example of one function 10 dimension 20 run
-file = "./CMAES_only_default/CMAES_output_10_20.txt"
-fun10_dim20_singleResult = readOutput(file)
+#identify worst stagnation example
+#########################################################################
+which(CMAES_only_default_aggResult$aggregatedAllStagnation == 
+        max(CMAES_only_default_aggResult$aggregatedAllStagnation))
+#420
+420/15
+#file number 28
+file = "./Stagnation_analysis/CMAES_output_7_20.txt"
+worstStagnation = readOutput(file)
+worstStagnationIndex = which(worstStagnation$allStagnations == max(worstStagnation$allStagnations))
+feMultiplier = worstStagnation$allRunsEval[worstStagnationIndex] / 
+  worstStagnation$allRuns[worstStagnationIndex]
+worstStagnationData = worstStagnation$allConvergence[,worstStagnationIndex]
+plot((1:worstStagnation$allRuns[worstStagnationIndex]*feMultiplier), 
+           log(worstStagnationData[1:worstStagnation$allRuns[worstStagnationIndex]]+1),type = "l")
 
-#plot runtime
+#draw red lines where stagnation takes place
+lines(((worstStagnation$allRuns[worstStagnationIndex]-max(worstStagnation$allStagnations)):
+         (worstStagnation$allRuns[worstStagnationIndex])*feMultiplier),
+      log(worstStagnationData[(length(worstStagnationData)-max(worstStagnation$allStagnations)):
+                            (length(worstStagnationData))]+1), 
+      col ="red", cex = 2)
+
+activeFunctions = getActiveFunctions(CMAES_only_default_aggResult)
+feMultiplier = CMAES_only_default_aggResult$aggregatedAvgRunEval/CMAES_only_default_aggResult$aggregatedAvgRun
+plot((1:length(activeFunctions))*feMultiplier, activeFunctions, type = "l")
+
+
+s#plot runtime
 boxplot(x = CMAES_only_default_aggResult$aggregatedAllRunsEval)
 
 #plot stagnation time
@@ -124,24 +151,46 @@ for (i in 1:nDimensions) {
 #add one in order to avoid large negative values for log -> better readibility of the plot
 plot(c(2, 5, 10, 20), log(averagesDim+1), axes = FALSE)
 
+#plots to show that multiple restarts make for better solutions
+
+file1 = "./restart_test_runs/CMAES_output_10_20_1.txt"
+file2 = "./restart_test_runs/CMAES_output_10_20_2.txt"
+file3 = "./restart_test_runs/CMAES_output_10_20_3.txt"
+file4 = "./restart_test_runs/CMAES_output_10_20_4.txt"
+file5 = "./restart_test_runs/CMAES_output_10_20_5.txt"
+restart_test1 = readOutput(file1)
+restart_test2 = readOutput(file2)
+restart_test3 = readOutput(file3)
+restart_test4 = readOutput(file4)
+restart_test5 = readOutput(file5)
+
+#order descending
+restart_test1$allBest #3
+restart_test2$allBest #5
+restart_test3$allBest #1
+restart_test4$allBest #3
+restart_test5$allBest #1
+
+feMultiplier = restart_test1$longestRunEval / restart_test1$longestRun
+#assume all restarts are equally long
+plot((((5-5) * restart_test3$longestRun + 1):(restart_test3$longestRun * (5-4)))* feMultiplier, 
+     log(restart_test3$allConvergence[,1]+1), type = "l", 
+     xlim = c(0, (restart_test3$longestRun * feMultiplier * 5)), ylim = c(12, 18))
+
+lines((((5-4) * restart_test5$longestRun + 1):(restart_test5$longestRun * (5-3)))* feMultiplier, 
+     log(restart_test5$allConvergence[,1]+1))
+
+lines((((5-3) * restart_test2$longestRun + 1):(restart_test2$longestRun * (5-2)))* feMultiplier, 
+      log(restart_test2$allConvergence[,1]+1))
+
+lines((((5-2) * restart_test4$longestRun + 1):(restart_test4$longestRun * (5-1)))* feMultiplier, 
+      log(restart_test4$allConvergence[,1]+1))
+
+lines((((5-1) * restart_test2$longestRun + 1):(restart_test2$longestRun * (5-0)))* feMultiplier, 
+      log(restart_test2$allConvergence[,1]+1))
+
+#in comparison the normal run
+lines((1:nrow(CMAES_only_default_aggResult$aggregatedAllConvergence)) * feMultiplier,
+  log(CMAES_only_default_aggResult$aggregatedAllConvergence[,40])+1, type = "l", col = "red")
 
 
-#testing lists
-#they are a bitch
-a = list(a1 = c(1,2), a2 = c(3,4))
-b = list(b1 = c(5,6), b2 = c(7,8))
-c = list(c1 = c(9,10), c2 = c(11,12))
-d = list(d1 = c(13,14), d2 = c(15,16))
-ab = list(a,b)
-abc = c(ab, list(c))
-abcd = c(abc, list(d))
-abcd[[1]]$a1
-abcd[[1]]$a2
-abcd[[2]]$b1
-abcd[[2]]$b2
-abcd[[3]]$c1
-abcd[[3]]$c2
-abcd[[4]]$d1
-abcd[[4]]$d2
-
-CMAES_only_default_aggResult$aggregatedAllBest

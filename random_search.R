@@ -7,6 +7,7 @@ random_search = function(fun, maxFE = NULL) {
   ub = 5
   lb = -5
   dimensions = length(getLowerBoxConstraints(fun))
+  result = "Start"
   
   #if no stopping criterion specified, stop after 10000 function evaluations
   if (is.null(maxFE)) maxFE = 10000
@@ -18,5 +19,6 @@ random_search = function(fun, maxFE = NULL) {
     if (fitness < bestFitness) bestFitness = fitness
     result = c(result, paste(i, i, bestFitness))
   }
+  result = c(result, "End")
   return(result)
 }

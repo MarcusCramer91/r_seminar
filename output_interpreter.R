@@ -26,25 +26,6 @@ readOutput = function(file) {
   
   data = suppressWarnings(apply(data, 2, as.double))
   
-  #get separate runs
-  #get split points (NAs) and increment run counter accordingly
-  data = as.data.frame(cbind(data, run_id = integer(nrow(data))))
-  run = 1
-  #save all run ids for later use
-  allRunIDs = 1
-  inBreakPoint = FALSE
-  for (i in 1:nrow(data)) {
-    data$run_id[i] = run
-    if (is.na(data[i,1]) && inBreakPoint == FALSE) {
-      run = run + 1
-      allRunIDs = c(allRunIDs, run)
-      inBreakPoint = TRUE
-    }
-    if (!is.na(data[i,1]) && inBreakPoint == TRUE) inBreakPoint = FALSE
-  }
-  #remove all run ids overlap (if there are 20 runs, the above code actually detects 21)
-  allRunIDs = allRunIDs[1:(length(allRunIDs)-1)]
-  
   #remove NA rows
   data = data[!is.na(data[,1]),]
   
@@ -52,7 +33,43 @@ readOutput = function(file) {
   #indicated by a -1 value in the first column
   allRestarts = data[which(data[,1] == -1),2]
   #remove restart rows
-  data = data[-which(data[,1] == -1),]
+  #check if no restarts were logged (backward-compatibility)
+  if(length(-which(data[,1] == -1)) > 0) data = data[-which(data[,1] == -1),]
+  
+  #get separate runs
+  #get split points (NAs) and increment run counter accordingly
+  data = as.data.frame(cbind(data, run_id = integer(nrow(data))))
+  run = 1
+  
+  #faster version of run_ids
+  #get breaks (where one run stopped)
+  breaks = which(is.na(data[,1]))
+  #remove every second break (because there are two lines separating different runs, except for the last run)
+  breaks = breaks[-seq(from = 1, to = length(breaks)-2, by = 2)]
+  #add one break in front
+  breaks = c(0, breaks)
+  for (i in 1:(length(breaks)-1)) {
+    data$run_id[breaks[i]:breaks[i+1]] = i
+  }
+  data[19515:19523,]
+  
+  ##################################
+  #old
+  #save all run ids for later use
+  #allRunIDs = 1
+  #inBreakPoint = FALSE
+  #for (i in 1:nrow(data)) {
+  #  data$run_id[i] = run
+  #  if (is.na(data[i,1]) && inBreakPoint == FALSE) {
+  #    run = run + 1
+  #    allRunIDs = c(allRunIDs, run)
+  #    inBreakPoint = TRUE
+  #  }
+  #  if (!is.na(data[i,1]) && inBreakPoint == TRUE) inBreakPoint = FALSE
+  #}
+  #remove all run ids overlap (if there are 20 runs, the above code actually detects 21)
+  #allRunIDs = allRunIDs[1:(length(allRunIDs)-1)]
+  
   
   #clean fitness values
   #due to rounding errors in the cmaesr there might be fitness values of less than zero 
@@ -218,13 +235,6 @@ aggregateResults = function(allResults) {
   return(result)
 }
 
-
-
-head(aggResult$aggregatedAllConvergence)
-
-allConvergence = aggResult$aggregatedAllConvergence
-
-
 #returns a cumulative distribution function of the functions that were solved within the desired fitnessGap
 #by the amount of function evaluations this took
 extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
@@ -284,36 +294,35 @@ getAggregatedConvergenceFunctions = function(results, nFunctions, nDimensions) {
 }
 
 #get best results averaged per function
-getAvgBestPerFunction = function(results, nFunctions, nDimensions)
+getAvgBestPerFunction = function(results, nFunctions, nDimensions) {
   avgBest = double(0)
-for (i in 1:(nFunctions*nDimensions)) {
-  avgBest = c(avgBest, mean(CMAES_only_default_aggResult$aggregatedAllBest[((i-1)*nInstances+1):(i*nInstances)]))
+  for (i in 1:(nFunctions*nDimensions)) {
+    avgBest = c(avgBest, mean(CMAES_only_default_aggResult$aggregatedAllBest[((i-1)*nInstances+1):(i*nInstances)]))
+  }
+  return(avgBest)
+}
+
+#returns the amount of functions per iteration that are not yet stopped
+getActiveFunctions = function(results) {
+  notConverged = integer(0)
+  allRuns = results$aggregatedAllRuns
+  for (i in 1:results$aggregatedLongestRun) {
+    currentlyNotConverged = 0
+    #track remove runs from the vector that did not satisfy the if clause in the loop (because 
+    #they will never again)
+    removeVector = integer(0)
+    for (j in 1:length(allRuns)) {
+      if (allRuns[j] > i) currentlyNotConverged = currentlyNotConverged + 1
+      else removeVector = c(removeVector, j)
+    }
+    if (length(removeVector) > 0) allRuns = allRuns[-removeVector]
+    j = j - length(removeVector)
+    notConverged = c(notConverged, currentlyNotConverged)
+  }
+  return(notConverged)
 }
 
 #get best results averaged average best per dimension
 getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
   
 }
-####some testing
-ecdfres = extractECDFofFunctions(allConvergence)
-plot(ecdfres)
-lines(ecdfres)
-
-file1 = "./CMAES_only_default/CMAES_output_1_2.txt"
-file2 = "./CMAES_only_default/CMAES_output_24_20.txt"
-res1 = readOutput(file1)
-res2 = readOutput(file2)
-allResults = list(res1, res2)
-
-allConvergence = CMAES_only_default_aggResult$aggregatedAllConvergence
-i = 90
-fitnessGap = 1e-08
-for (i in 1:ncol(allConvergence)) {
-  if (!length(which(allConvergence[,i]<fitnessGap)) == 0) {
-    thresholds = c(thresholds, min(which(allConvergence[,i]<fitnessGap)) * feMultiplier)
-  }
-}
-
-CMAES_only_default_results[[96]]$allConvergence[nrow(CMAES_only_default_results[[96]]$allConvergence),]
-CMAES_only_default_results[[1]]$allConvergence[nrow(CMAES_only_default_results[[1]]$allConvergence),]
-CMAES_only_default_aggResult$aggregatedAllConvergence[nrow(CMAES_only_default_aggResult$aggregatedAllConvergence),]
