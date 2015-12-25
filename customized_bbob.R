@@ -13,6 +13,10 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
                        instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
                        maxFE = NULL, OCD = FALSE, debug.logging = FALSE, max_restarts = 0, 
                        restart_multiplier = 1, restart_triggers = character(0)) {
+  write(paste("Functions:", function_ids), file = "bbob_calls.txt", append = TRUE)
+  write(paste("Dimensions:", dimensions), file = "bbob_calls.txt", append = TRUE)
+  write(paste("Instances:", instances), file = "bbob_calls.txt", append = TRUE)
+  write("================================", file = "bbob_calls.txt", append = TRUE)
   data_directory = paste(Sys.Date(), data_directory, sep = "_")
   dir.create(data_directory, showWarnings = FALSE)
   dimensions = sort(dimensions, decreasing = FALSE)
@@ -99,6 +103,7 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                 maxFE = NULL, OCD = FALSE, debug.logging = FALSE, max_restarts = 0, 
                                 restart_multiplier = 1, restart_triggers = character(0)) {
   nCores = detectCores()
+  nCores = 1
   cluster = snow:::makeCluster(nCores, type = "SOCK")
   #export relevant libraries + functions to the clusters
   snow:::clusterCall(cluster, function() require(cmaesr))
@@ -106,12 +111,12 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
   #export all environment functions
   ex = Filter(function(x) is.function(get(x, .GlobalEnv)), ls(.GlobalEnv))
   snow:::clusterExport(cluster, ex)
-  snow:::clusterApply(cl = cluster, x = instances, fun = function(x) bbob_custom(optimizer = optimizer, 
+  snow:::clusterApply(cl = cluster, x = function_ids, fun = function(x) bbob_custom(optimizer = optimizer, 
                                                                   algorithm_id = algorithm_id, 
                                                                   data_directory = data_directory, 
                                                                   dimensions = dimensions,
-                                                                  instances = x,
-                                                                  function_ids = function_ids,
+                                                                  instances = instances,
+                                                                  function_ids = x,
                                                                   maxit = maxit,
                                                                   stopFitness = stopFitness,
                                                                   maxFE = maxFE,
@@ -123,3 +128,14 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
   stopCluster(cluster)
   
 }
+
+
+#snow testing
+library(snow)
+z=vector('list',4)
+z=1:4
+system.time(lapply(z,function(x) Sys.sleep(1)))
+cl<-makeCluster(4,type="SOCK")
+clusterApply(cl, z,function(x) print("hallo"))
+stopCluster(cl)
+
