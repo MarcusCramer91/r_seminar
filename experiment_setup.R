@@ -31,6 +31,8 @@ suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "restart_test_run5",
 #set max restarts = maxFE so it does not limit the algorithm
 #throws an error sometimes, but i dont know why and when
 #also limit the stopfitness to 1e-08 so that no computation time is wasted
+#somehow parallel does not work (completely messes up the logging, even though different clusters
+#should be logging in different files only)
 suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_restart_with_default_run", 
                              maxit = NULL, stopFitness = 1e-08, maxFE = 100000, 
                              function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20),
@@ -38,6 +40,7 @@ suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_restart_wi
                              restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
                                                   "conditionCov", "indefCovMat"), debug.logging = FALSE))
 
+#use non-parallel version instead
 suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_restart_with_default_run", 
                                       maxit = NULL, stopFitness = 1e-08, maxFE = 100000, 
                                       function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20),

@@ -128,14 +128,3 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
   stopCluster(cluster)
   
 }
-
-
-#snow testing
-library(snow)
-z=vector('list',4)
-z=1:4
-system.time(lapply(z,function(x) Sys.sleep(1)))
-cl<-makeCluster(4,type="SOCK")
-clusterApply(cl, z,function(x) print("hallo"))
-stopCluster(cl)
-
