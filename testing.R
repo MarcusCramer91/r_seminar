@@ -13,7 +13,7 @@ res = cmaes(
   monitor = makeSimpleMonitor(),
   control = list(
     sigma = 1.5, lambda = 10,
-    stop.ons = list(stopOnOCD(0.0001, 18, 1000))
+    stop.ons = list(stopOnOCD(10, 18, 1000))
   )
 )
 getGlobalOptimum(fn)
@@ -24,8 +24,10 @@ res = cmaes(
   monitor = makeSimpleMonitor(),
   control = list(
     sigma = 1.5, lambda = 30,
-    stop.ons = list(stopOnOCD(0.00000001,18,1000))
+    stop.ons = list(stopOnOCD(0.0000000001,200,1000))
 ))
+
+
 
 getGlobalOptimum(fn)
 
@@ -120,3 +122,4 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
     }
   }
 }
+

@@ -1,0 +1,24 @@
+Online Convergence Detection,OCD successfully: Variance limit 0.000000,function (envir = parent.frame()) 
+{
+    lb = max(unlist(envir$generation.worstfitness))
+    ub = min(unlist(envir$generation.bestfitness))
+    if (envir$iter >= maxGen) {
+        return(envir$iter >= maxGen)
+    }
+    if (envir$iter > nPreGen) {
+        PI_all = abs(unlist(envir$generation.bestfitness)[-1] - unlist(envir$generation.bestfitness)[-length(envir$generation.bestfitness)])
+        PI_current_gen = PI_all[(envir$iter - nPreGen):(envir$iter - 1)]
+        if ((envir$iter - nPreGen) <= 1) {
+            PI_preceding_gen = PI_current_gen
+        }
+        else {
+            PI_preceding_gen = PI_all[(envir$iter - (nPreGen + 1)):(envir$iter - 2)]
+        }
+        pvalue_current_gen = pChi2(varLimit, PI_current_gen)
+        pvalue_preceding_gen = pChi2(varLimit, PI_preceding_gen)
+        return(pvalue_current_gen <= alpha && pvalue_preceding_gen <= alpha)
+    }
+    else {
+        return(FALSE)
+    }
+},Online Convergence Detection,list()
