@@ -22,3 +22,9 @@ vignettes/*.pdf
 *.info
 
 .RData
+
+*.txt
+
+2015-12-25_CMAES_restart_with_default_run/cmaes_output_1_2.txt
+
+2015-12-25_CMAES_restart_with_default_run/cmaes_output_1_5.txt
