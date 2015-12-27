@@ -1,6 +1,8 @@
 #does what the name suggests
 #samples random values and stores the best
 random_search = function(fun, maxFE = NULL) {
+  if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
+  require(smoof)
   #get box constraints
   
   #hardcode constraints since the smoof functions are buggy
@@ -12,12 +14,12 @@ random_search = function(fun, maxFE = NULL) {
   #if no stopping criterion specified, stop after 10000 function evaluations
   if (is.null(maxFE)) maxFE = 10000
   bestFitness = Inf
-  result = character(0)
   for (i in 1:maxFE) {
     solution = runif(dimensions, lb, ub)
     fitness = fun(solution)
     if (fitness < bestFitness) bestFitness = fitness
-    result = c(result, paste(i, i, bestFitness))
+    Fopt = getGlobalOptimum(fun)$value
+    if ((i %% 10) == 0) result = c(result, paste(i, i, (bestFitness - Fopt)))
   }
   result = c(result, "End")
   return(result)
