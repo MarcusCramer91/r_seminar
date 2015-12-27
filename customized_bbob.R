@@ -82,10 +82,6 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
     result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)), 
                    debug.logging = debug.logging)
   }
-  else if (!is.null(condition1)) {
-    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1)), 
-                   debug.logging = debug.logging)
-  }
   #use default if no stopping criterion is defined
   else result = cmaes(fun, monitor = monitor, debug.logging = debug.logging)
   return(result)
