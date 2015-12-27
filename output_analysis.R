@@ -1,15 +1,18 @@
+#This file contains visualization of output in a non-sorted manner
+#output was created as it was required for analysis and the presentation / documentation
+#therefore, expect a bit of chaos
 ###################################################################################
 #Output analysis of CMAES with only default stopping criteria
 
-#get all results
+#source necessary functions
+source("output_interpreter.R")
+################################################################################
+#get results for the first default run
 CMAES_only_default_results = 
   loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_only_default")
-RS_results = 
-  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./Random_Search_234204")
 
 #aggregate results
 CMAES_only_default_aggResult = aggregateResults(CMAES_only_default_results)
-RS_results_aggregated = aggregateResults(RS_results)
 
 #get data for cumulative distribution
 CMAES_only_default_cumulativeDistribution1 = extractECDFofFunctions(
@@ -194,3 +197,34 @@ lines((1:nrow(CMAES_only_default_aggResult$aggregatedAllConvergence)) * feMultip
   log(CMAES_only_default_aggResult$aggregatedAllConvergence[,40])+1, type = "l", col = "red")
 
 
+#######################################################################
+#load data for 100k function evaluations from random search, CMAES and GA to compare
+CMAES_default_restart_results = 
+  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_default_with_restart",
+                 algorithmName = "CMAES")
+RS_results = 
+  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./Random_Search_100000",
+                 algorithmName = "random search")
+GA_results = 
+  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./GA_default",
+                 algorithmName = "GA")
+
+#aggregate results
+CMAES_default_restart_results_agg = aggregateResults(CMAES_default_restart_results)
+RS_results_agg = aggregateResults(RS_results)
+GA_results_agg = aggregateResults(GA_results)
+
+#plot averaged convergencce
+feMultiplierCMAES = CMAES_default_restart_results_agg$aggregatedShortestRunEval / 
+  CMAES_default_restart_results_agg$aggregatedShortestRun
+plot(((1:CMAES_default_restart_results_agg$aggregatedLongestRun)*feMultiplierCMAES),
+     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence)+1, type = "l", ylim = c(5, 20))
+
+feMultiplierGA = GA_results_agg$aggregatedShortestRunEval / 
+  GA_results_agg$aggregatedShortestRun
+points(((1:GA_results_agg$aggregatedLongestRun)*feMultiplierGA),
+     log(GA_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "red")
+
+feMultiplierRS = 1
+points(((1:RS_results$aggregatedLongestRun)*feMultiplierGA),
+       log(RS_results$aggregatedAvgConvergence)+1, type = "l", col = "green")
