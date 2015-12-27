@@ -18,14 +18,42 @@ res = cmaes(
 )
 getGlobalOptimum(fn)
 
-fn = makeBBOBFunction(2, 1, 1)
+fn = makeBBOBFunction(2, 1, 4)
+
+
+res = suppressWarnings(cmaes(
+  fn,
+  monitor = makeSimpleMonitor(),
+  control = list(
+    sigma = 1.5, lambda = 30,
+    max.restarts = 100,
+    restart.multiplier = 1, 
+    restart.triggers = c("OCD"),
+    stop.ons = c(list(stopOnMaxIters(1000), stopOnOCD(0.0001,20)))
+)))
+
+opt = getGlobalOptimum(fn)
+?cmaes
+
+res = suppressWarnings(cmaes(
+  fn,
+  monitor = makeSimpleMonitor(),
+  control = list(
+    sigma = 1.5, lambda = 30,
+    max.restarts = 10000,
+    restart.multiplier = 1,
+    restart.triggers = c("maxEvals"),
+    stop.ons = list(stopOnOptValue(opt, 1e-08))
+  )))
+
+
 res = cmaes(
   fn,
   monitor = makeSimpleMonitor(),
   control = list(
     sigma = 1.5, lambda = 30,
-    stop.ons = list(stopOnOCD(0.0000000001,200,1000))
-))
+    stop.ons = c(list(stopOnMaxIters(100), stopOnMaxIters(400)))
+  ))
 
 
 
@@ -41,6 +69,7 @@ res = cmaes(
     stop.ons = getDefaultStoppingConditions()
   )
 )
+
 cmaes
 
 
