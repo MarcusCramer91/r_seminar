@@ -5,16 +5,9 @@ suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_default_run",
 
 #run of random search with 100000 function evaluations
 #this result is used for comparison with simple random search
-#since results are purely random anyway, only one instance is run
-suppressWarnings(bbob_custom_parallel(optimizerRS, "random search", "Random_Search_100000", 
-                                      function_ids = 1:24, instances = 1,
+suppressWarnings(bbob_custom(optimizerRS, "random search", "Random_Search_100000", 
+                                      function_ids = 1:24, instances = 1:15,
                                       dimensions = c(2,5,10,20), maxFE = 100000))
-suppressWarnings(bbob_custom(optimizerRS, "random search", "Random_Search_100000", 
-                             function_ids = 1:24, instances = 1,
-                             dimensions = c(2,5,10,20), maxFE = 100))
-suppressWarnings(bbob_custom(optimizerRS, "random search", "Random_Search_100000", 
-                             function_ids = 24, instances = 1,
-                             dimensions = 20, maxFE = 100000))
 
 #use this run to show the advantages of multiple restarts with the same settings on the same function
 #use a difficult function like 10 for this
@@ -53,12 +46,6 @@ suppressWarnings(bbob_custom(optimizerGA, "GA", "GA_default",
                                       maxit = NULL, stopFitness = 1e-08, maxFE = 100000,
                                       function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20)))
 
-stopFitness = 1e-08
-fun = makeBBOBFunction(20,24,1)
-getGlobalOptimum(fun)$value
-dimension = 2
-rbga(popSize = dimension * 10, iters = 100, evalFunc = fun, stringMin = rep(-5, dimension), 
-     stringMax = rep(5, dimension))
 
 suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_mergetest", 
                              maxit = NULL, stopFitness = NULL, maxFE = NULL, 

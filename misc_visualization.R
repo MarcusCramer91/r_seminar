@@ -81,3 +81,29 @@ for (i in 1:maxit) {
   dev.off()
 }
 
+############################################
+#some more visuals for the presentation
+if (!"MASS" %in% rownames(installed.packages())) install.packages("MASS")
+if (!"lattice" %in% rownames(installed.packages())) install.packages("lattice")
+require(MASS)
+require(lattice)
+
+png("normal1.png", height = 800, width = 800)
+par(mar=c(5,5,5,5))
+curve(dnorm, from = -10, to = 10, ylab = "density", cex.lab = 4, cex.axis = 4, lwd = 3)
+lines(c(-10, -10), c(-1, 10), col = "red", lwd = 3)
+lines(c(10, 10), c(10, -1), col = "red", lwd = 3)
+dev.off()
+
+
+png("normal2.png", height = 800, width = 800)
+par(mar=c(5,5,5,5))
+curve(dnorm, from = -1, to = 1, ylab = "density", cex.lab = 4, cex.axis = 4, lwd = 3)
+lines(c(-1, -1), c(-10, 10), col = "red", lwd = 3)
+lines(c(1, 1), c(-10, 10), col = "red", lwd = 3)
+dev.off()
+
+require(lattice)
+x = seq(from = -10, to = 10, by = 0.1)
+y = seq(from = -10, to = 10, by = 0.1)
+z = m

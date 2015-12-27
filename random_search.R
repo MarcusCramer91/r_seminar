@@ -17,7 +17,9 @@ random_search = function(fun, maxFE = NULL) {
   for (i in 1:maxFE) {
     solution = runif(dimensions, lb, ub)
     fitness = fun(solution)
-    if (fitness < bestFitness) bestFitness = fitness
+    if (fitness < bestFitness) {
+      bestFitness = fitness
+    }
     Fopt = getGlobalOptimum(fun)$value
     if ((i %% 10) == 0) result = c(result, paste(i, i, (bestFitness - Fopt)))
   }
