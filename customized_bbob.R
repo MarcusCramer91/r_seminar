@@ -1,14 +1,12 @@
 if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
 if (!"snow" %in% rownames(installed.packages())) install.packages("snow")
 if (!"parallel" %in% rownames(installed.packages())) install.packages("parallel")
-if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
 require(devtools)
 install_github(repo = "MarcusCramer91/cmaesr")
 require(cmaesr)
 require(bbob)
 require(snow)
 require(parallel)
-require(smoof)
 
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
@@ -82,6 +80,10 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
     result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)), 
                    debug.logging = debug.logging)
   }
+  else if (!is.null(condition1)) {
+    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1)), 
+                   debug.logging = debug.logging)
+  }
   #use default if no stopping criterion is defined
   else result = cmaes(fun, monitor = monitor, debug.logging = debug.logging)
   return(result)
@@ -94,20 +96,6 @@ optimizerRS = function(dimension, instance, function_id, maxit, maxFE, stopFitne
   return(result)
 }
 
-optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, OCD = FALSE,
-                       debug.logging = FALSE, max_restarts = 0, 
-                       restart_multiplier = 1, restart_triggers = character(0)) {
-  #set population size to recommended (see R docu) size of 10 * dimension
-  npop = dimension * 10
-  #if maxFE is specified, convert to maxit
-  if (!is.null(maxFE) && is.null(maxit)) maxit = maxFE / npop
-  # set value to be reached to global optimum + stopFitness
-  fun = makeBBOBFunction(dimension = dimension, fid = function_id, iid = instance)
-  result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
-                stringMax = rep(5, dimension))
-  return(result)
-}
-
 #wrapper function for bbob_custom that parallelizes it
 #disables the progressbar so check the output files to see how far the algorithm has gottenhh
 bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
@@ -115,6 +103,7 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                 maxFE = NULL, OCD = FALSE, debug.logging = FALSE, max_restarts = 0, 
                                 restart_multiplier = 1, restart_triggers = character(0)) {
   nCores = detectCores()
+  nCores = 1
   cluster = snow:::makeCluster(nCores, type = "SOCK")
   #export relevant libraries + functions to the clusters
   snow:::clusterCall(cluster, function() require(cmaesr))
@@ -137,4 +126,5 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                                                   restart_multiplier = restart_multiplier, 
                                                                   restart_triggers = restart_triggers))
   stopCluster(cluster)
+  
 }
