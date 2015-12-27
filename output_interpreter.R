@@ -33,8 +33,6 @@ readOutput = function(file) {
   
   data = suppressWarnings(apply(data, 2, as.double))
   
-  #remove NA rows
-  data = data[!is.na(data[,1]),]
   
   #get number of restarts
   #indicated by a -1 value in the first column
@@ -46,19 +44,23 @@ readOutput = function(file) {
   #get separate runs
   #get split points (NAs) and increment run counter accordingly
   data = as.data.frame(cbind(data, run_id = integer(nrow(data))))
-  run = 1
   
   #faster version of run_ids
   #get breaks (where one run stopped)
   breaks = which(is.na(data[,1]))
-  #remove every second break (because there are two lines separating different runs, except for the last run)
-  breaks = breaks[-seq(from = 1, to = length(breaks)-2, by = 2)]
-  #add one break in front
-  breaks = c(0, breaks)
-  for (i in 1:(length(breaks)-1)) {
-    data$run_id[breaks[i]:breaks[i+1]] = i
+  
+  #if there is only one instance (case of random sort)
+  if (length(breaks) < 2) data$run_id = 1
+  else {
+    #remove every second break (because there are two lines separating different runs, except for the last run)
+    breaks = breaks[-seq(from = 1, to = length(breaks)-2, by = 2)]
+    #add one break in front
+    breaks = c(0, breaks)
+    for (i in 1:(length(breaks)-1)) {
+      data$run_id[breaks[i]:breaks[i+1]] = i
+    }
   }
-  data[19515:19523,]
+  allRunIDs = unique(data$run_id)
   
   ##################################
   #old
@@ -77,6 +79,8 @@ readOutput = function(file) {
   #remove all run ids overlap (if there are 20 runs, the above code actually detects 21)
   #allRunIDs = allRunIDs[1:(length(allRunIDs)-1)]
   
+  #remove NA rows
+  data = data[!is.na(data[,1]),]
   
   #clean fitness values
   #due to rounding errors in the cmaesr there might be fitness values of less than zero 
@@ -268,13 +272,13 @@ extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
 }
 
 #loads all results that correspond to the naming conventions used by bbob_custom
-loadAllResults = function(usedFunctions, usedDimensions, path) {
+loadAllResults = function(usedFunctions, usedDimensions, path, algorithmName) {
   allResults = NULL
   pbar = makeProgressBar(min = 0, max = length(usedFunctions)*length(usedDimensions))
   pbar$set(0)
   for (i in 1:length(usedFunctions)) {
     for (j in 1:length(usedDimensions)) {
-      file = paste(path, "/", "CMAES_output_", usedFunctions[i], "_", usedDimensions[j], ".txt", sep = "")
+      file = paste(path, "/", algorithmName, "_output_", usedFunctions[i], "_", usedDimensions[j], ".txt", sep = "")
       result = readOutput(file)
       if (is.null(allResults)) allResults = list(result)
       else allResults = c(allResults, list(result))
@@ -304,7 +308,7 @@ getAggregatedConvergenceFunctions = function(results, nFunctions, nDimensions) {
 getAvgBestPerFunction = function(results, nFunctions, nDimensions) {
   avgBest = double(0)
   for (i in 1:(nFunctions*nDimensions)) {
-    avgBest = c(avgBest, mean(CMAES_only_default_aggResult$aggregatedAllBest[((i-1)*nInstances+1):(i*nInstances)]))
+    avgBest = c(avgBest, mean(results$aggregatedAllBest[((i-1)*nInstances+1):(i*nInstances)]))
   }
   return(avgBest)
 }
@@ -333,43 +337,3 @@ getActiveFunctions = function(results) {
 getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
   
 }
-####some testing
-ecdfres = extractECDFofFunctions(allConvergence)
-plot(ecdfres)
-lines(ecdfres)
-
-file1 = "./CMAES_only_default/CMAES_output_1_2.txt"
-file2 = "./CMAES_only_default/CMAES_output_24_20.txt"
-res1 = readOutput(file1)
-res2 = readOutput(file2)
-allResults = list(res1, res2)
-
-allConvergence = CMAES_only_default_aggResult$aggregatedAllConvergence
-i = 90
-fitnessGap = 1e-08
-for (i in 1:ncol(allConvergence)) {
-  if (!length(which(allConvergence[,i]<fitnessGap)) == 0) {
-    thresholds = c(thresholds, min(which(allConvergence[,i]<fitnessGap)) * feMultiplier)
-  }
-}
-
-CMAES_only_default_results[[96]]$allConvergence[nrow(CMAES_only_default_results[[96]]$allConvergence),]
-CMAES_only_default_results[[1]]$allConvergence[nrow(CMAES_only_default_results[[1]]$allConvergence),]
-CMAES_only_default_aggResult$aggregatedAllConvergence[nrow(CMAES_only_default_aggResult$aggregatedAllConvergence),]
-
-
-###### testing Andi
-fitnessGap = 1e-08
-res <- readOutput(file)
-res2 <- readOutput(file1)
-allresults <- list(res, res2)
-CMAES_only_default_aggResult <- aggregateResults(allresults)
-allConvergence <- CMAES_only_default_aggResult$aggregatedAllConvergence
-ecdfres <- extractECDFofFunctions(CMAES_only_default_aggResult, fitnessGap)
-plot(ecdfres)
-res$allBest
-res$avgBest
-sum(res$allBest)/length(res$allRuns)
-res$allRuns
-res$allRunsEval
-res$allBest
