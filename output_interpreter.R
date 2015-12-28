@@ -304,16 +304,44 @@ getAggregatedConvergenceFunctions = function(results, nFunctions, nDimensions) {
   return(aggregatedConvergenceFunctions)
 }
 
-#get best results averaged per function
-getAvgBestPerFunction = function(results, nFunctions, nDimensions) {
+#get best results averaged per function and dimension
+getAvgBestPerFunctionAndDimension = function(results, nFunctions, nDimensions) {
   avgBest = double(0)
+  nInstances = length(results$aggregatedAllBest)/nFunctions/nDimensions
   for (i in 1:(nFunctions*nDimensions)) {
     avgBest = c(avgBest, mean(results$aggregatedAllBest[((i-1)*nInstances+1):(i*nInstances)]))
   }
   return(avgBest)
 }
 
+#get best results averaged per function
+getAvgBestPerFunction = function(results, nFunctions, nDimensions) {
+  avgBest = double(0)
+  nInstances = length(results$aggregatedAllBest)/nFunctions/nDimensions
+  for (i in 1:nFunctions) {
+    avgBest = c(avgBest, mean(results$aggregatedAllBest[((i-1)*nInstances*nDimensions+1):(i*nInstances*nDimensions)]))
+  }
+  return(avgBest)
+}
+
+#get best results averaged per dimension
+getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
+  avgBest = double(0)
+  nInstances = length(results$aggregatedAllBest)/nFunctions/nDimensions
+  for (i in 1:nDimensions) {
+    currentAvg = double(0)
+    for (j in 1:nFunctions) {
+      indexes = (((j-1)*nDimensions*nInstances+1+(i-1)*nInstances):((j-1)*nDimensions*nInstances+i*nInstances))
+      currentAvg = c(currentAvg, mean(results$aggregatedAllBest[indexes]))
+    }
+    currentAvg = mean(currentAvg)
+    avgBest = c(avgBest, currentAvg)
+  }
+  return(avgBest)
+}
+
 #returns the amount of functions per iteration that are not yet stopped
+#functions stop e.g. when a certain solution quality is reached
 getActiveFunctions = function(results) {
   notConverged = integer(0)
   allRuns = results$aggregatedAllRuns
@@ -333,7 +361,15 @@ getActiveFunctions = function(results) {
   return(notConverged)
 }
 
-#get best results averaged average best per dimension
-getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
-  
+#average convergence per function or per dimension or per a combination of both
+#nDimensions is the total amount of logged dimensions, not only of the included ones
+#included dimensions has to be a counting value, not the actual dimensionality
+averageConvergence = function(allConvergence, includedFunctions, includedDimensions, nDimensions) {
+  avgConvergence = numeric(nrow(allConvergence))
+  for (i in includedFunctions) {
+    for (j in includedDimensions) {
+      avgConvergence = avgConvergence + allConvergence[,i*nDimensions-nDimensions+j]
+    }
+  }
+  avgConvergence = avgConvergence / (length(includedFunctions)*length(includedDimensions))
 }

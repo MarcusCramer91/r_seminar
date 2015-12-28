@@ -1,3 +1,6 @@
+source("./cmaes/cmaes.R")
+source("customized_bbob.R")
+
 #default run of CMAES with only default stopping criteria
 suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_default_run", 
                              maxit = NULL, stopFitness = NULL, maxFE = NULL, 
@@ -31,13 +34,19 @@ suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "restart_test_run5",
 #set max restarts = maxFE so it does not limit the algorithm
 #throws an error sometimes, but i dont know why and when
 #also limit the stopfitness to 1e-08 so that no computation time is wasted
-
 suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_default_with_restart", 
                              maxit = NULL, stopFitness = 1e-08, maxFE = 100000, 
                              function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20),
                              max_restarts = 100000, restart_multiplier = 1, 
                              restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
                                                   "conditionCov", "indefCovMat"), debug.logging = FALSE))
+
+suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_default_with_restart", 
+                                      maxit = NULL, stopFitness = 1e-08, maxFE = 100000, 
+                                      function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20),
+                                      max_restarts = 100000, restart_multiplier = 1, 
+                                      restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
+                                                           "conditionCov", "indefCovMat"), debug.logging = FALSE))
 
 suppressWarnings(bbob_custom_parallel(optimizerGA, "GA", "GA_default", 
                                       maxit = NULL, stopFitness = 1e-08, maxFE = 100000,
@@ -56,3 +65,8 @@ suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_OCD",
                              maxit = , stopFitness = NULL, maxFE = NULL, OCD = TRUE,
                              function_ids = 1, instances = 1, dimensions = c(2,5)))
 
+#some more testing
+
+suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "test_def", 
+                             maxit = NULL, stopFitness = NULL, maxFE = NULL, 
+                             function_ids = 6, instances = 1, dimensions = 20))

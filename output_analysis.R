@@ -199,6 +199,7 @@ lines((1:nrow(CMAES_only_default_aggResult$aggregatedAllConvergence)) * feMultip
 
 #######################################################################
 #load data for 100k function evaluations from random search, CMAES and GA to compare
+#this will probably take up to 10 minutes
 CMAES_default_restart_results = 
   loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_default_with_restart",
                  algorithmName = "CMAES")
@@ -226,5 +227,78 @@ points(((1:GA_results_agg$aggregatedLongestRun)*feMultiplierGA),
      log(GA_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "red")
 
 feMultiplierRS = 1
-points(((1:RS_results$aggregatedLongestRun)*feMultiplierGA),
-       log(RS_results$aggregatedAvgConvergence)+1, type = "l", col = "green")
+points(((1:RS_results_agg$aggregatedLongestRun)*feMultiplierGA),
+       log(RS_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "green")
+
+#plot number of function solved for gap = 1
+CMAES_default_restart_cumulativeDistribution = extractECDFofFunctions(
+  CMAES_default_restart_results_agg, fitnessGap = 1)
+GA_cumulativeDistribution = extractECDFofFunctions(
+  GA_results_agg, fitnessGap = 1)
+RS_cumulativeDistribution = extractECDFofFunctions(
+  RS_results_agg, fitnessGap = 1)
+
+plot(CMAES_default_restart_cumulativeDistribution, col = "black", type = "l",
+     xlim = c(0, 100000), 
+     ylim = c(0, 1))
+lines(GA_cumulativeDistribution, col = "red", type = "l")
+lines(RS_cumulativeDistribution, col = "green", type = "l")
+
+#apparently CMAES just has horrible results for certain functions
+#find out these functions
+avgBestPerFunction_CMAES = getAvgBestPerFunction(results = CMAES_default_restart_results_agg, nFunctions = 24, 
+                                                 nDimensions = 4)
+avgBestPerFunction_GA = getAvgBestPerFunction(results = GA_results_agg, nFunctions = 24, 
+                                              nDimensions = 4)
+avgBestPerFunction_RS = getAvgBestPerFunction(results = RS_results_agg, nFunctions = 24, 
+                                              nDimensions = 4)
+plot(log(avgBestPerFunction_CMAES+1), pch = 16)
+points(log(avgBestPerFunction_GA+1), col = "red", pch = 16)
+points(log(avgBestPerFunction_RS+1), col = "green", pch = 16)
+#without the logarithm, the result is even more drastic
+plot(avgBestPerFunction_CMAES, pch = 16)
+points(avgBestPerFunction_GA, col = "red", pch = 16)
+points(avgBestPerFunction_RS, col = "green", pch = 16)
+
+#apparently function 12 is a major outlier
+#plot convergence without function 12
+feMultiplierCMAES = CMAES_default_restart_results_agg$aggregatedShortestRunEval / 
+  CMAES_default_restart_results_agg$aggregatedShortestRun
+avgConvergence_CMAES = averageConvergence(allConvergence = CMAES_default_restart_results_agg$aggregatedAllConvergence,
+                                          includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
+                                          nDimensions = 4)
+
+plot(((1:CMAES_default_restart_results_agg$aggregatedLongestRun)*feMultiplierCMAES),
+     log(avgConvergence_CMAES)+1, type = "l", ylim = c(5, 20))
+
+avgConvergence_GA = averageConvergence(allConvergence = GA_results_agg$aggregatedAllConvergence,
+                                          includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
+                                       nDimensions = 4)
+feMultiplierGA = GA_results_agg$aggregatedShortestRunEval / 
+  GA_results_agg$aggregatedShortestRun
+points(((1:GA_results_agg$aggregatedLongestRun)*feMultiplierGA),
+       log(GA_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "red")
+
+avgConvergence_RS = averageConvergence(allConvergence = RS_results_agg$aggregatedAllConvergence,
+                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
+                                       nDimensions = 4)
+feMultiplierRS = 1
+points(((1:RS_results_agg$aggregatedLongestRun)*feMultiplierGA),
+       log(RS_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "green")
+
+#now, CMAES already is much better than random search
+
+#do the same analysis per dimensions
+avgBestPerDimension_CMAES = getAvgBestPerDimension(results = CMAES_default_restart_results_agg, nFunctions = 24, 
+                                                 nDimensions = 4)
+avgBestPerDimension_GA = getAvgBestPerDimension(results = GA_results_agg, nFunctions = 24, 
+                                              nDimensions = 4)
+avgBestPerDimension_RS = getAvgBestPerDimension(results = RS_results_agg, nFunctions = 24, 
+                                              nDimensions = 4)
+plot(log(avgBestPerDimension_CMAES+1), pch = 16, ylim = c())
+points(log(avgBestPerDimension_GA+1), col = "red", pch = 16)
+points(log(avgBestPerDimension_RS+1), col = "green", pch = 16)
+#without the logarithm, the result is even more drastic
+plot(avgBestPerDimension_CMAES, pch = 16)
+points(avgBestPerDimension_GA, col = "red", pch = 16)
+points(avgBestPerDimension_RS, col = "green", pch = 16)
