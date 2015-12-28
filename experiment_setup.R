@@ -67,19 +67,19 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_2_1", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.001, nPreGen = 100, restart_multiplier = 2, 
+                                      OCD = TRUE, varLimit = 0.01, nPreGen = 100, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_3_1", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 1000, restart_multiplier = 2, 
+                                      OCD = TRUE, varLimit = 0.01, nPreGen = 1000, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_1_2", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.01, nPreGen = 10, restart_multiplier = 2, 
+                                      OCD = TRUE, varLimit = 0.001, nPreGen = 10, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_2_2", 
@@ -92,19 +92,19 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_3_2", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 1000, restart_multiplier = 2, 
+                                      OCD = TRUE, varLimit = 0.001, nPreGen = 1000, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_1_3", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.01, nPreGen = 10, restart_multiplier = 2, 
+                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 10, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_2_1", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.001, nPreGen = 100, restart_multiplier = 2, 
+                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 100, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_3_3", 
