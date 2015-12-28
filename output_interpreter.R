@@ -44,8 +44,8 @@ readOutput = function(file) {
   #get type of test that caused termination of cmaes (only for OCD)
   # t-test is indicated by a -3 value in the first column
   # chi-squared-test is indicated by a -2 value in the first column
-  t_test_termination = data[which(data[,1] == -3),2]
-  chi_test_termination = data[which(data[,1] == -2),2]
+  chi_test_termination = data[which(data[,1] == -3),2]
+  t_test_termination = data[which(data[,1] == -2),2]
   # remove rows of termination conditions
   if(length(-which(data[,1]==-2)) > 0) data = data[-which(data[,1] == -2),]
   if(length(-which(data[,1]==-3)) > 0) data = data[-which(data[,1] == -3),]
@@ -274,11 +274,11 @@ aggregateResults = function(allResults) {
 extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
   allConvergence = results$aggregatedAllConvergence
   #get function evaluations multiplier (since only iterations are logged, these have to be multiplied by FEs)
-  feMultiplier = results$aggregatedAvgRunEval/results$aggregatedAvgRun
+  feMultipliers = results$aggregatedAllRunsEval/results$aggregatedAllRuns
   thresholds = integer(0)
   for (i in 1:ncol(allConvergence)) {
     if (!length(which(allConvergence[,i]<fitnessGap)) == 0) {
-      thresholds = c(thresholds, min(which(allConvergence[,i]<fitnessGap)) * feMultiplier)
+      thresholds = c(thresholds, min(which(allConvergence[,i]<fitnessGap)) * feMultipliers[i])
     }
   }
   #sort thresholds ascending
@@ -289,7 +289,7 @@ extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
   breaks = breaks[1:length(thresholds)]
   #add a point (all iterations,max(breaks)) in order to show the stagnation in the plot
   breaks = c(breaks, max(breaks))
-  thresholds = c(thresholds, nrow(allConvergence) * feMultiplier)
+  thresholds = c(thresholds, nrow(allConvergence) * results$aggregatedLongestRunEval / results$aggregatedLongestRun)
   #add (0,0) for better plots and return
   return(rbind(c(0,0), cbind(thresholds, breaks)))
 }
@@ -327,16 +327,44 @@ getAggregatedConvergenceFunctions = function(results, nFunctions, nDimensions) {
   return(aggregatedConvergenceFunctions)
 }
 
-#get best results averaged per function
-getAvgBestPerFunction = function(results, nFunctions, nDimensions) {
+#get best results averaged per function and dimension
+getAvgBestPerFunctionAndDimension = function(results, nFunctions, nDimensions) {
   avgBest = double(0)
+  nInstances = length(results$aggregatedAllBest)/nFunctions/nDimensions
   for (i in 1:(nFunctions*nDimensions)) {
     avgBest = c(avgBest, mean(results$aggregatedAllBest[((i-1)*nInstances+1):(i*nInstances)]))
   }
   return(avgBest)
 }
 
+#get best results averaged per function
+getAvgBestPerFunction = function(results, nFunctions, nDimensions) {
+  avgBest = double(0)
+  nInstances = length(results$aggregatedAllBest)/nFunctions/nDimensions
+  for (i in 1:nFunctions) {
+    avgBest = c(avgBest, mean(results$aggregatedAllBest[((i-1)*nInstances*nDimensions+1):(i*nInstances*nDimensions)]))
+  }
+  return(avgBest)
+}
+
+#get best results averaged per dimension
+getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
+  avgBest = double(0)
+  nInstances = length(results$aggregatedAllBest)/nFunctions/nDimensions
+  for (i in 1:nDimensions) {
+    currentAvg = double(0)
+    for (j in 1:nFunctions) {
+      indexes = (((j-1)*nDimensions*nInstances+1+(i-1)*nInstances):((j-1)*nDimensions*nInstances+i*nInstances))
+      currentAvg = c(currentAvg, mean(results$aggregatedAllBest[indexes]))
+    }
+    currentAvg = mean(currentAvg)
+    avgBest = c(avgBest, currentAvg)
+  }
+  return(avgBest)
+}
+
 #returns the amount of functions per iteration that are not yet stopped
+#functions stop e.g. when a certain solution quality is reached
 getActiveFunctions = function(results) {
   notConverged = integer(0)
   allRuns = results$aggregatedAllRuns
@@ -356,7 +384,15 @@ getActiveFunctions = function(results) {
   return(notConverged)
 }
 
-#get best results averaged average best per dimension
-getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
-  
+#average convergence per function or per dimension or per a combination of both
+#nDimensions is the total amount of logged dimensions, not only of the included ones
+#included dimensions has to be a counting value, not the actual dimensionality
+averageConvergence = function(allConvergence, includedFunctions, includedDimensions, nDimensions) {
+  avgConvergence = numeric(nrow(allConvergence))
+  for (i in includedFunctions) {
+    for (j in includedDimensions) {
+      avgConvergence = avgConvergence + allConvergence[,i*nDimensions-nDimensions+j]
+    }
+  }
+  avgConvergence = avgConvergence / (length(includedFunctions)*length(includedDimensions))
 }

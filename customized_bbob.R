@@ -1,20 +1,23 @@
-if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
+#if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
 if (!"snow" %in% rownames(installed.packages())) install.packages("snow")
 if (!"parallel" %in% rownames(installed.packages())) install.packages("parallel")
 if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
-require(devtools)
-install_github(repo = "MarcusCramer91/cmaesr")
-require(cmaesr)
-require(bbob)
+if (!"BBmisc" %in% rownames(installed.packages())) install.packages("BBmisc")
+#require(devtools)
+#install_github(repo = "MarcusCramer91/cmaesr")
+#require(cmaesr)
+require(BBmisc)
 require(snow)
 require(parallel)
 require(smoof)
+source("./cmaes/cmaes.R")
 
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
                        instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
-                       maxFE = NULL, OCD = FALSE, debug.logging = FALSE, max_restarts = 0, 
-                       restart_multiplier = 1, restart_triggers = character(0)) {
+                       maxFE = NULL, debug.logging = FALSE, max_restarts = 0, 
+                       restart_multiplier = 1, restart_triggers = character(0), OCD = FALSE, varLimit = NULL,
+                       nPreGen = NULL, maxGen = NULL) {
   write(paste("Functions:", function_ids), file = "bbob_calls.txt", append = TRUE)
   write(paste("Dimensions:", dimensions), file = "bbob_calls.txt", append = TRUE)
   write(paste("Instances:", instances), file = "bbob_calls.txt", append = TRUE)
@@ -25,7 +28,11 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   if (is.null(function_ids)) {
     function_ids = 1:24
   }
+  
+  #some sanity checks
   if (is.null(c(maxit, maxFE)) && !is.null(stopFitness)) stop("To ensure termination, stopFitness must be combined with either maxit or maxFE")
+  if (OCD == TRUE & (is.null(varLimit) | is.null(nPreGen))) stop("If OCD is enabled, a value for varLimit and nPreGen must be passed.")
+  
   nruns = length(function_ids)*length(dimensions)*length(instances)
   currentRun = 1
   pbar = makeProgressBar(min = 1, max = nruns)
@@ -35,8 +42,8 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
         print(paste("Function:", function_ids[i], ",instance:", instances[k], ",dimensions:", dimensions[j]))
         result = optimizer(dimension = dimensions[j], instance = instances[k], function_id = function_ids[i], 
                            maxit = maxit, maxFE = maxFE, stopFitness = stopFitness, path = data_directory, 
-                           OCD = OCD, debug.logging = debug.logging, max_restarts, restart_multiplier,
-                           restart_triggers)
+                           debug.logging = debug.logging, max_restarts, restart_multiplier,
+                           restart_triggers, OCD = OCD, varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen)
         pbar$set(currentRun)
         currentRun = currentRun + 1
         outputFile = file.path(data_directory, paste(algorithm_id, "_output_", function_ids[i], "_", dimensions[j], 
@@ -47,8 +54,9 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   }
 }
 
-optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, OCD = FALSE,
-                          debug.logging = FALSE, max_restarts, restart_multiplier, restart_triggers) {
+optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, 
+                          debug.logging = FALSE, max_restarts, restart_multiplier, restart_triggers, OCD = FALSE,
+                          varLimit = NULL, nPreGen = NULL, maxGen = NULL) {
   if(!grepl(":/", path, fixed = TRUE)) path = file.path(getwd(), path)
   fun = makeBBOBFunction(dimension = dimension, fid = function_id, iid = instance)
   #create .txt creating monitor
@@ -62,25 +70,43 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
   else if (!is.null(maxit)) condition1 = stopOnMaxIters(maxit)
   #stopFitness can only be used in combination with either maxFE or maxit (caught error)
   result = NULL
+  if (OCD == TRUE) OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen)
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)$value
     condition2 = stopOnOptValue(optValue, stopFitness)
-    result = cmaes(fun, monitor = monitor, debug.logging = debug.logging,
+    if (OCD == FALSE) {
+      result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging,
                    control = list (stop.ons = c(list(condition1, condition2),
-                                                           getDefaultStoppingConditions()), 
-                                                           max.restarts = max_restarts,
-                                                           restart.triggers = restart_triggers,
-                                                           restart.multiplier = restart_multiplier))
+                                             getDefaultStoppingConditions()), 
+                                             max.restarts = max_restarts,
+                                             restart.triggers = restart_triggers,
+                                             restart.multiplier = restart_multiplier))
+    }
+    else {
+      result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging,
+                            control = list (stop.ons = c(list(condition1, condition2, OCDcond)), 
+                                            max.restarts = max_restarts,
+                                            restart.triggers = restart_triggers,
+                                            restart.multiplier = restart_multiplier))
+    }
   }
+  #if stop fitness is null
   else if (!is.null(condition1)) {
-    result = cmaes(fun, monitor = monitor, debug.logging = debug.logging, 
-                   control = list (stop.ons = c(list(condition1), 
-                                                           getDefaultStoppingConditions()),
-                                                           max.restarts = max_restarts,
-                                                           restart.triggers = restart_triggers,
-                                                           restart.multiplier = restart_multiplier))
-    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)), 
-                   debug.logging = debug.logging)
+    if (OCD == FALSE) {
+     result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging, 
+                            control = list (stop.ons = c(list(condition1), 
+                                                         getDefaultStoppingConditions()),
+                                            max.restarts = max_restarts,
+                                            restart.triggers = restart_triggers,
+                                            restart.multiplier = restart_multiplier))
+    }
+    else { 
+      result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging, 
+                            control = list (stop.ons = c(list(condition1, OCDcond)),
+                                            max.restarts = max_restarts,
+                                            restart.triggers = restart_triggers,
+                                            restart.multiplier = restart_multiplier))    
+    }
   }
   #use default if no stopping criterion is defined
   else result = cmaes(fun, monitor = monitor, debug.logging = debug.logging)
@@ -90,6 +116,7 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
 optimizerRS = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, OCD = FALSE,
                        debug.logging = FALSE, max_restarts = 0, 
                        restart_multiplier = 1, restart_triggers = character(0)) {
+  fun = makeBBOBFunction(dimension = dimension, fid = function_id, iid = instance)
   result = random_search(fun, maxFE)
   return(result)
 }
@@ -112,8 +139,9 @@ optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitne
 #disables the progressbar so check the output files to see how far the algorithm has gottenhh
 bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
                                 instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
-                                maxFE = NULL, OCD = FALSE, debug.logging = FALSE, max_restarts = 0, 
-                                restart_multiplier = 1, restart_triggers = character(0)) {
+                                maxFE = NULL, debug.logging = FALSE, max_restarts = 0, 
+                                restart_multiplier = 1, restart_triggers = character(0), OCD = FALSE, varLimit = NULL,
+                                nPreGen = NULL, maxGen = NULL) {
   nCores = detectCores()
   cluster = snow:::makeCluster(nCores, type = "SOCK")
   #export relevant libraries + functions to the clusters
@@ -135,6 +163,9 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                                                   debug.logging = debug.logging,
                                                                   max_restarts = max_restarts, 
                                                                   restart_multiplier = restart_multiplier, 
-                                                                  restart_triggers = restart_triggers))
+                                                                  restart_triggers = restart_triggers,
+                                                                  varLimit = varLimit,
+                                                                  nPreGen = nPreGen,
+                                                                  maxGen = maxGen))
   stopCluster(cluster)
 }
