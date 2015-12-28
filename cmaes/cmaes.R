@@ -281,7 +281,7 @@ cmaes_custom = function(
       
       # ======================================== added ====================================
       # update worst solution so far
-      if (fitn.ordered[length(fitn.ordered)] < worst.fitness) {
+      if (fitn.ordered[length(fitn.ordered)] > worst.fitness | is.infinite(worst.fitness)) {
         worst.fitness = fitn.ordered[length(fitn.ordered)]
       }
       # ======================================== added ====================================
@@ -302,7 +302,8 @@ cmaes_custom = function(
       
       # ======================================== added ====================================
       # log best fitness value per generation
-      generation.bestfitness[[iter]] = best.fitness
+      if (!is.infinite(best.fitness)) generation.bestfitness[[iter]] = best.fitness
+      else generation.bestfitness[[iter]] = .Machine$integer.max
       # log worst fitness value oer generation
       generation.worstfitness[[iter]] = worst.fitness
       # ======================================== added ====================================
@@ -352,7 +353,7 @@ cmaes_custom = function(
           upper.bound = max(unlist(generation.worstfitness))
           lower.bound = min(unlist(generation.bestfitness))
         }
-      }      
+      }
       
       
       

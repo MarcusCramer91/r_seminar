@@ -153,8 +153,12 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
 }
 
 source("customized_bbob.R")
+source("./cmaes/cmaes.R")
 
 bbob_custom(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_TEST", dimensions = 20, 
-            instances = 1:15, function_ids = 1, maxit = NULL, stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-            OCD = TRUE, varLimit = 0.0001, nPreGen = 20)
+            instances = rep(1:15, 20), function_ids = 1, maxit = NULL, stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
+            OCD = TRUE, varLimit = 0.001, nPreGen = 20)
 
+source("output_interpreter.R")
+file = ("./2015-12-28_OCD_TEST/CMAES_OCD_output_1_20.txt")
+res = readOutput(file = file)

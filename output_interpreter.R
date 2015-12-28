@@ -44,8 +44,8 @@ readOutput = function(file) {
   #get type of test that caused termination of cmaes (only for OCD)
   # t-test is indicated by a -3 value in the first column
   # chi-squared-test is indicated by a -2 value in the first column
-  t_test_termination = data[which(data[,1] == -3),2]
-  chi_test_termination = data[which(data[,1] == -2),2]
+  chi_test_termination = data[which(data[,1] == -3),2]
+  t_test_termination = data[which(data[,1] == -2),2]
   # remove rows of termination conditions
   if(length(-which(data[,1]==-2)) > 0) data = data[-which(data[,1] == -2),]
   if(length(-which(data[,1]==-3)) > 0) data = data[-which(data[,1] == -3),]
