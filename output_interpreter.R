@@ -41,6 +41,15 @@ readOutput = function(file) {
   #check if no restarts were logged (backward-compatibility)
   if(length(-which(data[,1] == -1)) > 0) data = data[-which(data[,1] == -1),]
   
+  #get type of test that caused termination of cmaes (only for OCD)
+  # t-test is indicated by a -3 value in the first column
+  # chi-squared-test is indicated by a -2 value in the first column
+  t_test_termination = data[which(data[,1] == -3),2]
+  chi_test_termination = data[which(data[,1] == -2),2]
+  # remove rows of termination conditions
+  if(length(-which(data[,1]==-2)) > 0) data = data[-which(data[,1] == -2),]
+  if(length(-which(data[,1]==-3)) > 0) data = data[-which(data[,1] == -3),]
+  
   #get separate runs
   #get split points (NAs) and increment run counter accordingly
   data = as.data.frame(cbind(data, run_id = integer(nrow(data))))
@@ -157,7 +166,7 @@ readOutput = function(file) {
                 allStagnations = allStagnations, longestStagnation = longestStagnation,
                 shortestStagnation = shortestStagnation, avgStagnation = avgStagnation, 
                 sdStagnations = sdStagnations, allConvergence = allConvergence, avgConvergence = avgConvergence,
-                allRestarts = allRestarts)
+                allRestarts = allRestarts, t_test_termination = t_test_termination, chi_test_termination=chi_test_termination)
   class(result) = "single_bbob_result"
   return(result)
 }
@@ -227,6 +236,18 @@ aggregateResults = function(allResults) {
     aggregatedAllRestarts = c(aggregatedAllRestarts, allResults[[i]]$allRestarts)
   }  
   
+  #aggregate t_test_termination
+  aggregated_t_test_termination = integer(0)
+  for (i in 1:length(allResults)) {
+    aggregated_t_test_termination = c(aggregated_t_test_termination, allResults[[i]]$t_test_termination)
+  }
+  
+  #aggregate chi_test_termination
+  aggregated_chi_test_termination = integer(0)
+  for (i in 1:length(allResults)) {
+    aggregated_chi_test_termination = c(aggregated_chi_test_termination, allResults[[i]]$chi_test_termination)
+  }
+  
   #format return value
   result = list(aggregatedAllBest = aggregatedAllBest, aggregatedAvgBest = aggregatedAvgBest,
                 aggregatedOverallBest = aggregatedOverallBest, aggregatedOverallWorst = aggregatedOverallWorst,
@@ -242,7 +263,9 @@ aggregateResults = function(allResults) {
                 aggregatedSDStagnation = aggregatedSDStagnation, 
                 aggregatedAllConvergence = aggregatedAllConvergence,
                 aggregatedAvgConvergence = aggregatedAvgConvergence,
-                aggregatedAllRestarts = aggregatedAllRestarts)
+                aggregatedAllRestarts = aggregatedAllRestarts,
+                aggregated_t_test_termination = aggregated_t_test_termination,
+                aggregated_chi_test_termination = aggregated_chi_test_termination)
   return(result)
 }
 
