@@ -281,6 +281,7 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL, fitnessValue = TRUE, dispe
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
         PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
         #in the first test
+        print(collapse(PI_all))
         if((envir$restartIter - nPreGen) <= 1){
           # PI_preceding_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the last generation i-1.
           PI_preceding_gen = PI_current_gen
