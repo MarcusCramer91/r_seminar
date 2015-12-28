@@ -139,8 +139,9 @@ optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitne
 #disables the progressbar so check the output files to see how far the algorithm has gottenhh
 bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
                                 instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
-                                maxFE = NULL, OCD = FALSE, debug.logging = FALSE, max_restarts = 0, 
-                                restart_multiplier = 1, restart_triggers = character(0)) {
+                                maxFE = NULL, debug.logging = FALSE, max_restarts = 0, 
+                                restart_multiplier = 1, restart_triggers = character(0), OCD = FALSE, varLimit = NULL,
+                                nPreGen = NULL, maxGen = NULL) {
   nCores = detectCores()
   cluster = snow:::makeCluster(nCores, type = "SOCK")
   #export relevant libraries + functions to the clusters
@@ -162,6 +163,9 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                                                   debug.logging = debug.logging,
                                                                   max_restarts = max_restarts, 
                                                                   restart_multiplier = restart_multiplier, 
-                                                                  restart_triggers = restart_triggers))
+                                                                  restart_triggers = restart_triggers,
+                                                                  varLimit = varLimit,
+                                                                  nPreGen = nPreGen,
+                                                                  maxGen = maxGen))
   stopCluster(cluster)
 }
