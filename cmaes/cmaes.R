@@ -133,6 +133,8 @@ cmaes_custom = function(
   # restart mechanism (IPOP-CMA-ES)
   restart.triggers = getCMAESParameter(control, "restart.triggers", character(0L))
   stop.ons.names = sapply(stop.ons, function(stop.on) stop.on$code)
+  if(debug.logging == TRUE) print(collapse(stop.ons.names))
+  if(debug.logging == TRUE) print(collapse(restart.triggers))
   if (!isSubset(restart.triggers, stop.ons.names)) {
     stopf("Only codes / short names of active stopping conditions allowed as restart trigger, but '%s' are no stopping conditions.", collapse(setdiff(restart.triggers, stop.ons.names), sep = ", "))
   }
@@ -171,6 +173,11 @@ cmaes_custom = function(
   iter = 0L
   n.evals = 0L
   start.time = Sys.time()
+  
+  # initialize stopped.on.t and stopped.on.chi that indicate the type of test which caused the termination of cma-es.
+  # the stopping condition "stopOnOCD" sets the corresponding variable to "1" if that specific test has been significant.
+  stopped.on.t = 0
+  stopped.on.chi = 0
   
   result = callMonitor(monitor, "before")
   
@@ -234,10 +241,14 @@ cmaes_custom = function(
     # no restart trigger fired until now
     restarting = FALSE
     
+    #restart iter logs the amount of iterations within the current restart loop (for OCD)
+    restartIter = 0
+    
     # break inner loop if terminating stopping condition active or
     # restart triggered
     while (!restarting) {
       iter = iter + 1L
+      restartIter = restartIter + 1
       
       # create new population of search points
       arz = matrix(rnorm(n * lambda), ncol = lambda) # ~ N(0, I)
@@ -321,6 +332,9 @@ cmaes_custom = function(
       
       # Update step-size sigma
       sigma = sigma * exp(cs / ds * ((norm2(ps) / chi.n) - 1))
+      if (debug.logging) print(paste("sigma:", sigma))
+      if (debug.logging) print(paste("Covmat:", sum(abs(C))))
+      if (debug.logging) print(paste("Dispersion:", sum(abs(m-arx.repaired))))
       
       # Finally do decomposition C = B D^2 B^T
       e = eigen(C, symmetric = TRUE)
@@ -341,10 +355,6 @@ cmaes_custom = function(
       
       # normalization and logging functionality for OCD
       if ("OCD" %in% stop.ons.names) {
-        # initialize stopped.on.t and stopped.on.chi that indicate the type of test which caused the termination of cma-es.
-        # the stopping condition "stopOnOCD" sets the corresponding variable to "1" if that specific test has been significant.
-        stopped.on.t = 0
-        stopped.on.chi = 0
         # get the call parameters from OCD needed for normalization
         param.set = stop.ons[[grep("OCD",stop.ons)]]$param.set
         # define upper and lower bound for normalization after nPreGen generations.

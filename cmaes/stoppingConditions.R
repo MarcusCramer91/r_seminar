@@ -234,7 +234,7 @@ stopOnCondCov = function(tol = 1e14) {
 #' @return [\code{cma_stopping_condition}]
 #' @family stopping conditions
 #' @export
-stopOnOCD = function(varLimit, nPreGen,maxGen = NULL)
+stopOnOCD = function(varLimit, nPreGen,maxGen = NULL, fitnessValue = TRUE, dispersion = FALSE, evolutionPath = FALSE)
 {
   # Check if varLimit is a single numeric
   assertNumber(varLimit, na.ok = FALSE)
@@ -257,7 +257,7 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL)
   # return stopping condition being compatible with cma-es implementation by Jakob Bossek
   return(makeStoppingCondition(
     name = "OCD",
-    message = sprintf("OCD successfully: Variance limit %f", varLimit),
+    message = sprintf("OCD successful: Variance limit %f", varLimit),
     param.set = list(varLimit, nPreGen),
     stop.fun = function(envir = parent.frame()) {
       # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
@@ -267,7 +267,7 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL)
       }
       
       # Check if number of iterations is greater than user-defined nPreGen
-      if(envir$iter > nPreGen){
+      if(envir$restartIter > nPreGen){
         # Here: In single objective optimization, the indicator of interest is the best fitness value of each generation.
         # PF_i is the best fitness value of the i-th generation which is used as a reference value
         # for calculating the indicator values of the last nPreGen generations
@@ -280,7 +280,8 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL)
         PI_all = PI_all/(envir$upper.bound-envir$lower.bound)
         # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
         PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
-        if((envir$iter - nPreGen) <= 1){
+        #in the first test
+        if((envir$restartIter - nPreGen) <= 1){
           # PI_preceding_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the last generation i-1.
           PI_preceding_gen = PI_current_gen
         }else{
@@ -296,7 +297,8 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL)
         if (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha) envir$stopped.on.chi = envir$stopped.on.chi + 1
         if (pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha) envir$stopped.on.t = envir$stopped.on.t + 1
         # return TRUE, i.e. stop cmaes exectuion, if p-value is below specified significance level alpha
-        return (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha || pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha)
+        return (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha || 
+                  pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha)
       }
       else{
         return(FALSE)
