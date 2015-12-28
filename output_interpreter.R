@@ -274,11 +274,11 @@ aggregateResults = function(allResults) {
 extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
   allConvergence = results$aggregatedAllConvergence
   #get function evaluations multiplier (since only iterations are logged, these have to be multiplied by FEs)
-  feMultiplier = results$aggregatedAvgRunEval/results$aggregatedAvgRun
+  feMultipliers = results$aggregatedAllRunsEval/results$aggregatedAllRuns
   thresholds = integer(0)
   for (i in 1:ncol(allConvergence)) {
     if (!length(which(allConvergence[,i]<fitnessGap)) == 0) {
-      thresholds = c(thresholds, min(which(allConvergence[,i]<fitnessGap)) * feMultiplier)
+      thresholds = c(thresholds, min(which(allConvergence[,i]<fitnessGap)) * feMultipliers[i])
     }
   }
   #sort thresholds ascending
@@ -289,7 +289,7 @@ extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
   breaks = breaks[1:length(thresholds)]
   #add a point (all iterations,max(breaks)) in order to show the stagnation in the plot
   breaks = c(breaks, max(breaks))
-  thresholds = c(thresholds, nrow(allConvergence) * feMultiplier)
+  thresholds = c(thresholds, nrow(allConvergence) * results$aggregatedLongestRunEval / results$aggregatedLongestRun)
   #add (0,0) for better plots and return
   return(rbind(c(0,0), cbind(thresholds, breaks)))
 }

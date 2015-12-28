@@ -152,3 +152,9 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   }
 }
 
+source("customized_bbob.R")
+
+bbob_custom(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_TEST", dimensions = 20, 
+            instances = 1:15, function_ids = 1, maxit = NULL, stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
+            OCD = TRUE, varLimit = 0.0001, nPreGen = 20)
+
