@@ -17,7 +17,7 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
                        instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
                        maxFE = NULL, debug.logging = FALSE, max_restarts = 0, 
                        restart_multiplier = 1, restart_triggers = character(0), OCD = FALSE, varLimit = NULL,
-                       nPreGen = NULL, maxGen = NULL) {
+                       nPreGen = NULL, maxGen = NULL, fitnessValue = FALSE, dispersion = FALSE, evolutionPath = FALSE) {
   write(paste("Functions:", function_ids), file = "bbob_calls.txt", append = TRUE)
   write(paste("Dimensions:", dimensions), file = "bbob_calls.txt", append = TRUE)
   write(paste("Instances:", instances), file = "bbob_calls.txt", append = TRUE)
@@ -31,7 +31,8 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   
   #some sanity checks
   if (is.null(c(maxit, maxFE)) && !is.null(stopFitness)) stop("To ensure termination, stopFitness must be combined with either maxit or maxFE")
-  if (OCD == TRUE & (is.null(varLimit) | is.null(nPreGen))) stop("If OCD is enabled, a value for varLimit and nPreGen must be passed.")
+  if (OCD == TRUE & (is.null(varLimit) | is.null(nPreGen) (isFALSE(fitnessValue) & isFALSE(dispersion) & isFALSE(evolutionPath))))
+    stop("If OCD is enabled, a value for varLimit and nPreGen must be passed.")
   
   nruns = length(function_ids)*length(dimensions)*length(instances)
   currentRun = 1
@@ -43,7 +44,8 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
         result = optimizer(dimension = dimensions[j], instance = instances[k], function_id = function_ids[i], 
                            maxit = maxit, maxFE = maxFE, stopFitness = stopFitness, path = data_directory, 
                            debug.logging = debug.logging, max_restarts, restart_multiplier,
-                           restart_triggers, OCD = OCD, varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen)
+                           restart_triggers, OCD = OCD, varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen,
+                           fitnessValue = fitnessValue, dispersion = dispersion, evolutionPath = evolutionPath)
         pbar$set(currentRun)
         currentRun = currentRun + 1
         outputFile = file.path(data_directory, paste(algorithm_id, "_output_", function_ids[i], "_", dimensions[j], 
@@ -56,7 +58,8 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
 
 optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, 
                           debug.logging = FALSE, max_restarts, restart_multiplier, restart_triggers, OCD = FALSE,
-                          varLimit = NULL, nPreGen = NULL, maxGen = NULL) {
+                          varLimit = NULL, nPreGen = NULL, maxGen = NULL, fitnessValue= FALSE, dispersion = FALSE,
+                          evolutionPath = FALSE) {
   if(!grepl(":/", path, fixed = TRUE)) path = file.path(getwd(), path)
   fun = makeBBOBFunction(dimension = dimension, fid = function_id, iid = instance)
   #create .txt creating monitor
@@ -70,7 +73,8 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
   else if (!is.null(maxit)) condition1 = stopOnMaxIters(maxit)
   #stopFitness can only be used in combination with either maxFE or maxit (caught error)
   result = NULL
-  if (OCD == TRUE) OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen)
+  if (OCD == TRUE) OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen, 
+                                       fitnessValue = fitnessValue, dispersion = dispersion, evolutionPath = evolutionPath)
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)$value
     condition2 = stopOnOptValue(optValue, stopFitness)
@@ -141,7 +145,7 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                 instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
                                 maxFE = NULL, debug.logging = FALSE, max_restarts = 0, 
                                 restart_multiplier = 1, restart_triggers = character(0), OCD = FALSE, varLimit = NULL,
-                                nPreGen = NULL, maxGen = NULL) {
+                                nPreGen = NULL, maxGen = NULL, fitnessValue = FALSE, dispersion = FALSE, evolutionPath = FALSE) {
   nCores = detectCores()
   cluster = snow:::makeCluster(nCores, type = "SOCK")
   #export relevant libraries + functions to the clusters
@@ -166,6 +170,9 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                                                   restart_triggers = restart_triggers,
                                                                   varLimit = varLimit,
                                                                   nPreGen = nPreGen,
-                                                                  maxGen = maxGen))
+                                                                  maxGen = maxGen,
+                                                                  fitnessValue = fitnessValue,
+                                                                  dispersion = dispersion, 
+                                                                  evolutionPath = evolutionPath))
   stopCluster(cluster)
 }
