@@ -31,8 +31,8 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   
   #some sanity checks
   if (is.null(c(maxit, maxFE)) && !is.null(stopFitness)) stop("To ensure termination, stopFitness must be combined with either maxit or maxFE")
-  if (OCD == TRUE & (is.null(varLimit) | is.null(nPreGen) (isFALSE(fitnessValue) & isFALSE(dispersion) & isFALSE(evolutionPath))))
-    stop("If OCD is enabled, a value for varLimit and nPreGen must be passed.")
+  if (OCD == TRUE & (is.null(varLimit) | is.null(nPreGen) | (isFALSE(fitnessValue) & isFALSE(dispersion) & isFALSE(evolutionPath))))
+    stop("If OCD is enabled, a value for varLimit and nPreGen must be passed and at least one performance indicator must be enabled.")
   
   nruns = length(function_ids)*length(dimensions)*length(instances)
   currentRun = 1
