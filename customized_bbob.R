@@ -70,7 +70,7 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
   else if (!is.null(maxit)) condition1 = stopOnMaxIters(maxit)
   #stopFitness can only be used in combination with either maxFE or maxit (caught error)
   result = NULL
-  if (OCD == TRUE) OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen)
+  if (OCD == TRUE) OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen)
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)$value
     condition2 = stopOnOptValue(optValue, stopFitness)
