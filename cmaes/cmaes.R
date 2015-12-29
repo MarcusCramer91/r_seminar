@@ -166,7 +166,6 @@ cmaes_custom = function(
   
   # ======================================== added ====================================
   generation.bestfitness = list()
-  generation.worstfitness = list()
   # ======================================== added ====================================
   
   # init some termination criteria stuff
@@ -269,6 +268,9 @@ cmaes_custom = function(
       } else {
         apply(arx.repaired, 2L, function(x) objective.fun(x))
       }
+      write(paste("Iteration:", iter), file = "arxrepaired_debug.txt", append = TRUE)
+      write(paste("Restart number:", restarts), file = "arxrepaired_debug.txt", append = TRUE)
+      write(collapse(arx.repaired), file = "arxrepaired_debug.txt", append = TRUE)
       
       # apply penalization (see Eq. 51)
       fitn = fitn.repaired + penalties
@@ -314,9 +316,10 @@ cmaes_custom = function(
       # ======================================== added ====================================
       # log best fitness value per generation
       if (!is.infinite(best.fitness)) generation.bestfitness[[iter]] = best.fitness
-      else generation.bestfitness[[iter]] = .Machine$integer.max
-      # log worst fitness value oer generation
-      generation.worstfitness[[iter]] = worst.fitness
+      else {
+        print("infinite value caught")
+        generation.bestfitness[[iter]] = .Machine$integer.max
+      }
       # ======================================== added ====================================
       
       # Update evolution path with cumulative step-size adaption (CSA) / path length control
@@ -332,9 +335,10 @@ cmaes_custom = function(
       
       # Update step-size sigma
       sigma = sigma * exp(cs / ds * ((norm2(ps) / chi.n) - 1))
-      if (debug.logging) print(paste("sigma:", sigma))
-      if (debug.logging) print(paste("Covmat:", sum(abs(C))))
-      if (debug.logging) print(paste("Dispersion:", sum(abs(m-arx.repaired))))
+      if (debug.logging) write(paste("Best fitness:", best.fitness), file = "debug.txt", append = TRUE)
+      if (debug.logging) write(paste("sigma:", sigma), file = "debug.txt", append = TRUE)
+      if (debug.logging) write(paste("Covmat:", sum(abs(C))), file = "debug.txt", append = TRUE)
+      if (debug.logging) write(paste("Dispersion:", sum(abs(m-arx.repaired))), file = "debug.txt", append = TRUE)
       
       # Finally do decomposition C = B D^2 B^T
       e = eigen(C, symmetric = TRUE)
@@ -360,7 +364,7 @@ cmaes_custom = function(
         # define upper and lower bound for normalization after nPreGen generations.
         # bounds are fixed once nPreGen generations are reached.
         if(iter == param.set[[2]]){
-          upper.bound = max(unlist(generation.worstfitness))
+          upper.bound = worst.fitness
           lower.bound = min(unlist(generation.bestfitness))
         }
       }

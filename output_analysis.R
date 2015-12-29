@@ -216,19 +216,14 @@ RS_results_agg = aggregateResults(RS_results)
 GA_results_agg = aggregateResults(GA_results)
 
 #plot averaged convergencce
-feMultiplierCMAES = CMAES_default_restart_results_agg$aggregatedShortestRunEval / 
-  CMAES_default_restart_results_agg$aggregatedShortestRun
-plot(((1:CMAES_default_restart_results_agg$aggregatedLongestRun)*feMultiplierCMAES),
-     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence)+1, type = "l", ylim = c(5, 20))
+plot(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,1],
+     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", ylim = c(5, 20))
 
-feMultiplierGA = GA_results_agg$aggregatedShortestRunEval / 
-  GA_results_agg$aggregatedShortestRun
-points(((1:GA_results_agg$aggregatedLongestRun)*feMultiplierGA),
-     log(GA_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "red")
+points(GA_results_agg$aggregatedAvgConvergence[,1],
+     log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red")
 
-feMultiplierRS = 1
-points(((1:RS_results_agg$aggregatedLongestRun)*feMultiplierGA),
-       log(RS_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "green")
+points(RS_results_agg$aggregatedAvgConvergence[,1],
+       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green")
 
 #plot number of function solved for gap = 1
 CMAES_default_restart_cumulativeDistribution = extractECDFofFunctions(
@@ -252,39 +247,44 @@ avgBestPerFunction_GA = getAvgBestPerFunction(results = GA_results_agg, nFunctio
                                               nDimensions = 4)
 avgBestPerFunction_RS = getAvgBestPerFunction(results = RS_results_agg, nFunctions = 24, 
                                               nDimensions = 4)
-plot(log(avgBestPerFunction_CMAES+1), pch = 16)
+plot(log(avgBestPerFunction_CMAES+1), pch = 16, ylim = c(0, 20), axes = FALSE, xlab = "Dimension", 
+     ylab = "log(best value + 1)")
+axis(1, at = 1:24)
+axis(2)
+box()
 points(log(avgBestPerFunction_GA+1), col = "red", pch = 16)
 points(log(avgBestPerFunction_RS+1), col = "green", pch = 16)
 #without the logarithm, the result is even more drastic
-plot(avgBestPerFunction_CMAES, pch = 16)
+plot(avgBestPerFunction_CMAES, pch = 16, ylim = c(0, 20), axes = FALSE, xlab = "Dimension", 
+     ylab = "log(best value + 1)")
+axis(1, at = 1:24)
+axis(2)
+box()
 points(avgBestPerFunction_GA, col = "red", pch = 16)
 points(avgBestPerFunction_RS, col = "green", pch = 16)
 
 #apparently function 12 is a major outlier
 #plot convergence without function 12
-feMultiplierCMAES = CMAES_default_restart_results_agg$aggregatedShortestRunEval / 
-  CMAES_default_restart_results_agg$aggregatedShortestRun
 avgConvergence_CMAES = averageConvergence(allConvergence = CMAES_default_restart_results_agg$aggregatedAllConvergence,
                                           includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
                                           nDimensions = 4)
 
-plot(((1:CMAES_default_restart_results_agg$aggregatedLongestRun)*feMultiplierCMAES),
-     log(avgConvergence_CMAES)+1, type = "l", ylim = c(5, 20))
+plot(avgConvergence_CMAES[,1],
+     log(avgConvergence_CMAES[,2])+1, type = "l", ylim = c(5, 20), xlab = "Function evaluations", ylab = "log(best value + 1)")
 
 avgConvergence_GA = averageConvergence(allConvergence = GA_results_agg$aggregatedAllConvergence,
                                           includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
                                        nDimensions = 4)
-feMultiplierGA = GA_results_agg$aggregatedShortestRunEval / 
-  GA_results_agg$aggregatedShortestRun
-points(((1:GA_results_agg$aggregatedLongestRun)*feMultiplierGA),
-       log(GA_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "red")
+
+points(avgConvergence_GA[,1],
+       log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red")
 
 avgConvergence_RS = averageConvergence(allConvergence = RS_results_agg$aggregatedAllConvergence,
                                        includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
                                        nDimensions = 4)
-feMultiplierRS = 1
-points(((1:RS_results_agg$aggregatedLongestRun)*feMultiplierGA),
-       log(RS_results_agg$aggregatedAvgConvergence)+1, type = "l", col = "green")
+
+points(avgConvergence_RS[,1],
+       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green")
 
 #now, CMAES already is much better than random search
 
@@ -295,10 +295,40 @@ avgBestPerDimension_GA = getAvgBestPerDimension(results = GA_results_agg, nFunct
                                               nDimensions = 4)
 avgBestPerDimension_RS = getAvgBestPerDimension(results = RS_results_agg, nFunctions = 24, 
                                               nDimensions = 4)
-plot(log(avgBestPerDimension_CMAES+1), pch = 16, ylim = c())
+plot(log(avgBestPerDimension_CMAES+1), pch = 16, ylim = c(0, 20), axes = FALSE, xlab = "Dimension", 
+     ylab = "log(best value + 1)")
+axis(1, at = 1:4, labels = c("2", "5", "10", "20"))
+axis(2)
+box()
 points(log(avgBestPerDimension_GA+1), col = "red", pch = 16)
 points(log(avgBestPerDimension_RS+1), col = "green", pch = 16)
 #without the logarithm, the result is even more drastic
-plot(avgBestPerDimension_CMAES, pch = 16)
+plot(avgBestPerDimension_CMAES+1, pch = 16, axes = FALSE, xlab = "Dimension", 
+     ylab = "log(best value + 1)")
+axis(1, at = 1:4, labels = c("2", "5", "10", "20"))
+axis(2)
+box()
 points(avgBestPerDimension_GA, col = "red", pch = 16)
 points(avgBestPerDimension_RS, col = "green", pch = 16)
+
+#plot the convergence without dimension 20 and without function 12
+avgConvergence_CMAES = averageConvergence(allConvergence = CMAES_default_restart_results_agg$aggregatedAllConvergence,
+                                          includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
+                                          nDimensions = 4)
+
+plot(avgConvergence_CMAES[,1],
+     log(avgConvergence_CMAES[,2])+1, type = "l", ylim = c(2, 20), xlab = "Function evaluations", ylab = "log(best value + 1)")
+
+avgConvergence_GA = averageConvergence(allConvergence = GA_results_agg$aggregatedAllConvergence,
+                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
+                                       nDimensions = 4)
+
+points(avgConvergence_GA[,1],
+       log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red")
+
+avgConvergence_RS = averageConvergence(allConvergence = RS_results_agg$aggregatedAllConvergence,
+                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
+                                       nDimensions = 4)
+
+points(avgConvergence_RS[,1],
+       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green")

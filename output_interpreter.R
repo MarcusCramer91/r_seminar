@@ -1,10 +1,4 @@
 #file = "C:/Users/M/Documents/r_seminar/2015-12-21_standard_BBOB_run/CMAES_output_1_1.txt"
-
-################### Andi #######################
-file = "/Users/Andreas/Documents/Uni/R/2015-12-23_CMAES_default_run/CMAES_output_1_2.txt"
-file1 = "/Users/Andreas/Documents/Uni/R/2015-12-23_CMAES_default_run/CMAES_output_1_5.txt"
-################### Andi #######################
-
 #read file
 #data = read.table(file, skip = 1, fill = TRUE)
 
@@ -59,7 +53,9 @@ readOutput = function(file) {
   breaks = which(is.na(data[,1]))
   
   #if there is only one instance (case of random sort)
-  if (length(breaks) < 2) data$run_id = 1
+  if (length(breaks) < 2) {
+    data$run_id = 1
+  }
   else {
     #remove every second break (because there are two lines separating different runs, except for the last run)
     breaks = breaks[-seq(from = 1, to = length(breaks)-2, by = 2)]
@@ -148,14 +144,35 @@ readOutput = function(file) {
   #get average convergence
   #for this purpose pad all runs that are shorter than the longest run with their last best found value
   #this is desired in order to average the convergence over all instances
+  #since only each result per iteration and not per function evaluation is logged, when there are different numbers
+  #of individuals, FEs might differ within instances
+  #therefore, average convergence cannot simply be aggregated over the rows
+  #instead, store convergence in steps of size 100 and find the corresponding value, that is closest to this
+  allConvergenceTicks = seq(from = 1, to = max(data[,2]), by = 100)
   allConvergence = NULL
   for (i in allRunIDs) {
-    tempRun = data[which(data$run_id %in% allRunIDs[i]),3]
-    tempRun = c(tempRun, rep(tempRun[length(tempRun)], times = (longestRun - allRuns[i])))
-    allConvergence = as.data.frame(cbind(allConvergence, tempRun))
-    colnames(allConvergence)[i] = paste("Run", i, sep = "_")
+    #get the data for the current run id
+    tempData = data[which(data$run_id == i),]
+    #get the FE multiplier (how many FEs per iteration)
+    #for the random search result, this does not work, since only all 10 iterations information is logged
+    #so check if the output corresponds to RS logged output
+    if ((tempData[1,1] == tempData[1,2]) && ((tempData[1,2]+10) == tempData[2,2])) feMultiplier = 10
+    else feMultiplier = tempData[1,2]/tempData[1,1]
+    #get iteration that corresponds closest to the convergence ticks
+    iterations = floor(allConvergenceTicks/feMultiplier)+1
+    #find out how many iterations are actually logged and do not get higher than this number
+    stoppingPoint = which((max(tempData[,1]) > iterations) == FALSE)[1]-1
+    #all iterations might be locked, in this case: skip
+    if (!is.na(stoppingPoint)) {
+      iterations[stoppingPoint:length(iterations)] = 
+        iterations[stoppingPoint]
+    }
+
+    allConvergence = as.data.frame(cbind(allConvergence, tempData[iterations,3]))
   }
-  avgConvergence = apply(allConvergence, 1, mean)
+  allConvergence = as.data.frame(cbind(allConvergenceTicks, allConvergence))
+  avgConvergence = apply(allConvergence[,-1], 1, mean)
+  avgConvergence = cbind(allConvergenceTicks, avgConvergence)
   
   #format return value
   result = list(allBest = allBest, avgBest = avgBest, overallBest = overallBest, overallWorst = overallWorst,
@@ -220,15 +237,24 @@ aggregateResults = function(allResults) {
   aggregatedSDStagnation = sd(aggregatedAllStagnation)
   
   #aggregate convergence
-  aggregatedAllConvergence = matrix(nrow = aggregatedLongestRun, ncol = length(allResults))
+  #follows the same logic as the single convergence aggregation
+  #except for that entries already correspond to ticks, so we just need to take the row
+  #corresponding to the current tick
+  allConvergenceTicks = seq(from = 1, to = aggregatedLongestRunEval, by = 100)
+  aggregatedAllConvergence = matrix(nrow = length(allConvergenceTicks), ncol = length(allResults))
 
   for (i in 1:length(allResults)) {
-    #pad with last value to get the same number of rows for all elements
-    paddingVector = rep(allResults[[i]]$avgConvergence[length(allResults[[i]]$avgConvergence)], 
-        times = (aggregatedLongestRun-aggregatedAllRuns[i]))
-    aggregatedAllConvergence[,i] = c(allResults[[i]]$avgConvergence, paddingVector)
+    currentConvergence = allResults[[i]]$avgConvergence
+    #find all ticks that are included in the current convergence, pad the rest
+    currentConvergenceTicks = c(currentConvergence[,1], rep(collapse(currentConvergence[nrow(currentConvergence),1]), 
+                                                            times = (length(allConvergenceTicks) - nrow(currentConvergence))))
+    #convert to indexes
+    currentIndexes = ceiling(as.numeric(currentConvergenceTicks)/100)
+    aggregatedAllConvergence[,i] = currentConvergence[currentIndexes,2]
   }
   aggregatedAvgConvergence = apply(aggregatedAllConvergence, 1, mean)
+  aggregatedAvgConvergence = cbind(allConvergenceTicks, aggregatedAvgConvergence)
+  aggregatedAllConvergence = cbind(allConvergenceTicks, aggregatedAllConvergence)
   
   #aggregate restarts
   aggregatedAllRestarts = integer(0)
@@ -272,13 +298,11 @@ aggregateResults = function(allResults) {
 #returns a cumulative distribution function of the functions that were solved within the desired fitnessGap
 #by the amount of function evaluations this took
 extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
-  allConvergence = results$aggregatedAllConvergence
-  #get function evaluations multiplier (since only iterations are logged, these have to be multiplied by FEs)
-  feMultipliers = results$aggregatedAllRunsEval/results$aggregatedAllRuns
+  allConvergence = results$aggregatedAllConvergence[,-1]
   thresholds = integer(0)
   for (i in 1:ncol(allConvergence)) {
     if (!length(which(allConvergence[,i]<fitnessGap)) == 0) {
-      thresholds = c(thresholds, min(which(allConvergence[,i]<fitnessGap)) * feMultipliers[i])
+      thresholds = c(thresholds, ((min(which(allConvergence[,i]<fitnessGap))-1) * 100 + 1))
     }
   }
   #sort thresholds ascending
@@ -287,9 +311,10 @@ extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
   breaks = seq(from = 1/ncol(allConvergence), to = 1, length.out = ncol(allConvergence))
   #remove % values that are not reached (these functions did not reach the desired value)
   breaks = breaks[1:length(thresholds)]
-  #add a point (all iterations,max(breaks)) in order to show the stagnation in the plot
+  #add a point (all iterations,max(breaks)) with the maximum number of FEs in order to show the stagnation in the plot
+  #max 100001 are evaluated if there are 100000 FEs
   breaks = c(breaks, max(breaks))
-  thresholds = c(thresholds, nrow(allConvergence) * results$aggregatedLongestRunEval / results$aggregatedLongestRun)
+  thresholds = c(thresholds, (nrow(allConvergence)-1) * 100 + 1)
   #add (0,0) for better plots and return
   return(rbind(c(0,0), cbind(thresholds, breaks)))
 }
@@ -389,10 +414,12 @@ getActiveFunctions = function(results) {
 #included dimensions has to be a counting value, not the actual dimensionality
 averageConvergence = function(allConvergence, includedFunctions, includedDimensions, nDimensions) {
   avgConvergence = numeric(nrow(allConvergence))
+  tempConvergence = allConvergence[,-1]
   for (i in includedFunctions) {
     for (j in includedDimensions) {
-      avgConvergence = avgConvergence + allConvergence[,i*nDimensions-nDimensions+j]
+      avgConvergence = avgConvergence + tempConvergence[,i*nDimensions-nDimensions+j]
     }
   }
   avgConvergence = avgConvergence / (length(includedFunctions)*length(includedDimensions))
+  avgConvergence = cbind(allConvergence[,1], avgConvergence)
 }
