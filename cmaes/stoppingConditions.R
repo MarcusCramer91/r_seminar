@@ -262,8 +262,8 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL, fitnessValue = TRUE, dispe
     stop.fun = function(envir = parent.frame()) {
       # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
       
-      if(envir$iter >= maxGen){
-        return(envir$iter >= maxGen)
+      if(envir$restartIter >= maxGen){
+        return(envir$restartIter >= maxGen)
       }
       
       # Check if number of iterations is greater than user-defined nPreGen
