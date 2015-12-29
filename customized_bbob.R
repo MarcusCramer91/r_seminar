@@ -22,6 +22,7 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   write(paste("Dimensions:", dimensions), file = "bbob_calls.txt", append = TRUE)
   write(paste("Instances:", instances), file = "bbob_calls.txt", append = TRUE)
   write("================================", file = "bbob_calls.txt", append = TRUE)
+  
   data_directory = paste(Sys.Date(), data_directory, sep = "_")
   dir.create(data_directory, showWarnings = FALSE)
   dimensions = sort(dimensions, decreasing = FALSE)
@@ -31,7 +32,7 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   
   #some sanity checks
   if (is.null(c(maxit, maxFE)) && !is.null(stopFitness)) stop("To ensure termination, stopFitness must be combined with either maxit or maxFE")
-  if (OCD == TRUE & (is.null(varLimit) | is.null(nPreGen) (isFALSE(fitnessValue) & isFALSE(dispersion) & isFALSE(evolutionPath))))
+  if (OCD == TRUE & (is.null(varLimit) | is.null(nPreGen) | (isFALSE(fitnessValue) & isFALSE(dispersion) & isFALSE(evolutionPath))))
     stop("If OCD is enabled, a value for varLimit and nPreGen must be passed.")
   
   nruns = length(function_ids)*length(dimensions)*length(instances)
@@ -73,8 +74,14 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
   else if (!is.null(maxit)) condition1 = stopOnMaxIters(maxit)
   #stopFitness can only be used in combination with either maxFE or maxit (caught error)
   result = NULL
-  if (OCD == TRUE) OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen, 
+  if (OCD == TRUE) {
+    OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen, 
                                        fitnessValue = fitnessValue, dispersion = dispersion, evolutionPath = evolutionPath)
+    #also add the default stopping conditions to the restart triggers
+    #these need to be enabled at the same time as they perform some sanity checks
+    restart_triggers = c(restart_triggers, "tolX", "noEffectAxis", "noEffectCoord",
+                                             "conditionCov", "indefCovMat")
+  }
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)$value
     condition2 = stopOnOptValue(optValue, stopFitness)
@@ -88,7 +95,7 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
     }
     else {
       result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging,
-                            control = list (stop.ons = c(list(condition1, condition2, OCDcond)), 
+                            control = list (stop.ons = c(list(condition1, condition2, OCDcond), getDefaultStoppingConditions()), 
                                             max.restarts = max_restarts,
                                             restart.triggers = restart_triggers,
                                             restart.multiplier = restart_multiplier))
@@ -106,7 +113,7 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
     }
     else { 
       result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging, 
-                            control = list (stop.ons = c(list(condition1, OCDcond)),
+                            control = list (stop.ons = c(list(condition1, OCDcond), getDefaultStoppingConditions()),
                                             max.restarts = max_restarts,
                                             restart.triggers = restart_triggers,
                                             restart.multiplier = restart_multiplier))    
