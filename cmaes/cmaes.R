@@ -380,17 +380,6 @@ cmaes_custom = function(
                                     "evolutionPath.all" = evolutionPath[-length(evolutionPath)])
         
       }
-      # normalization and logging functionality for OCD
-      if ("OCD" %in% stop.ons.names) {
-        # get the call parameters from OCD needed for normalization
-        param.set = stop.ons[[grep("OCD",stop.ons)]]$param.set
-        # define upper and lower bound for normalization after nPreGen generations.
-        # bounds are fixed once nPreGen generations are reached.
-        if(iter == param.set[[2]]){
-          upper.bound = worst.fitness
-          lower.bound = min(unlist(generation.bestfitness))
-        }
-      }
       
       
       
