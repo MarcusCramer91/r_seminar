@@ -374,8 +374,8 @@ cmaes_custom = function(
         performance.measures = list("fitnessValue.iter" = if(iter < param.set[[2]]) best.fitness else (best.fitness)/(upper.bound-lower.bound),
                                     "fitnessValue.all" = if(iter < param.set[[2]]) generation.bestfitness[-length(generation.bestfitness)]
                                     else unlist(generation.bestfitness[-length(generation.bestfitness)])/(upper.bound-lower.bound),
-                                    "dispersion.iter" = dispersion[length(dispersion)], 
-                                    "dispersion.all" = dispersion[-length(dispersion)],
+                                    "dispersion.iter" = dispersion[length(dispersion)]/(sqrt(n)), 
+                                    "dispersion.all" = dispersion[-length(dispersion)]/(sqrt(n)),
                                     "evolutionPath.iter" = evolutionPath[length(evolutionPath)], 
                                     "evolutionPath.all" = evolutionPath[-length(evolutionPath)])
         
