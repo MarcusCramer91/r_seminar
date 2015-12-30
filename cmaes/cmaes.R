@@ -166,6 +166,8 @@ cmaes_custom = function(
   
   # ======================================== added ====================================
   generation.bestfitness = list()
+  evolutionPath = list()
+  dispersion = list()
   # ======================================== added ====================================
   
   # init some termination criteria stuff
@@ -313,15 +315,6 @@ cmaes_custom = function(
       # log population
       population.trace[[iter]] = x.best
       
-      # ======================================== added ====================================
-      # log best fitness value per generation
-      if (!is.infinite(best.fitness)) generation.bestfitness[[iter]] = best.fitness
-      else {
-        print("infinite value caught")
-        generation.bestfitness[[iter]] = .Machine$integer.max
-      }
-      # ======================================== added ====================================
-      
       # Update evolution path with cumulative step-size adaption (CSA) / path length control
       # For an explanation of the last factor see appendix A in https://www.lri.fr/~hansen/cmatutorial.pdf
       ps = (1 - cs) * ps + sqrt(cs * (2 - cs) * mu.eff) * (Cinvsqrt %*% y.w)
@@ -357,6 +350,39 @@ cmaes_custom = function(
         }
       }
       
+      ######### normalization and logging functionality for OCD ########
+      if ("OCD" %in% stop.ons.names) {
+        # get the call parameters from OCD needed for normalization
+        param.set = stop.ons[[grep("OCD",stop.ons)]]$param.set
+        # log best fitness value per generation
+        if (!is.infinite(best.fitness)) generation.bestfitness[[iter]] = best.fitness
+        else {
+          print("infinite value caught")
+          generation.bestfitness[[iter]] = .Machine$integer.max
+        }
+        # define upper and lower bound for normalization after nPreGen generations.
+        # bounds are fixed once nPreGen generations are reached.
+        if(iter == param.set[[2]]){
+          upper.bound = worst.fitness
+          lower.bound = min(unlist(generation.bestfitness))
+        }
+        # initialize list "evolutionPath" to be used as a performance indicator
+        evolutionPath[[iter]] = sigma
+        # initialize list "dispersion" to be used as a performance indicator
+        dispersion[[iter]] = sum(abs(m-arx.repaired))
+        # populate list with performance indicators for OCD.
+        # if necessary, normalize the performance indicator of interest. 
+        # For example, fitnessValue is normalized in the range upper.bound - lower.bound, 
+        # i.e. the range of the objective values after nPreGen generations as defined above. This value is fixed for all upcomming generations
+        performance.measures = list("fitnessValue.iter" = if(iter < param.set[[2]]) best.fitness else (best.fitness)/(upper.bound-lower.bound),
+                                    "fitnessValue.all" = if(iter < param.set[[2]]) generation.bestfitness[-length(generation.bestfitness)]
+                                    else unlist(generation.bestfitness[-length(generation.bestfitness)])/(upper.bound-lower.bound),
+                                    "dispersion.iter" = dispersion[length(dispersion)], 
+                                    "dispersion.all" = dispersion[-length(dispersion)],
+                                    "evolutionPath.iter" = evolutionPath[length(evolutionPath)], 
+                                    "evolutionPath.all" = evolutionPath[-length(evolutionPath)])
+        
+      }
       # normalization and logging functionality for OCD
       if ("OCD" %in% stop.ons.names) {
         # get the call parameters from OCD needed for normalization

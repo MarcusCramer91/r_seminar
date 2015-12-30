@@ -242,18 +242,34 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL, fitnessValue = TRUE, dispe
   assertInt(nPreGen, na.ok = FALSE)
   # initialize significane level alpha with default value 0.05
   alpha = 0.05
-  # Check if maxGen is a single integerish value
+  # Check if maxGen is a single integerish value. If no value for maxGen is passed, set maxGen to "Inf"
   if(!is.null(maxGen)) {
     assertInt(maxGen, na.ok = FALSE)
   }else{
     maxGen = Inf
   }
+  # initialize vector of reference measures for calculating the different performance indicators.
+  PF_i = numeric()
+  # initialize list of performance indicator values
+  PI_all = list()
+  # initialize list of performance indicator values that stores the values of the generations i-nPreGen to i-1.
+  PI_current_gen = list()
+  # initialize list of performance indicator values that stores the values of the generations i-(nPreGen+1) to i-2.
+  PI_preceding_gen = list()
+  # initialize list of indicators
+  indicator = numeric()
+  # fill list with enabled indicators. Example: fitnessValue.iter contains the best.fitness value of the current generation,
+  # fitnessValue.all contains the fitness values of all generations except the current iteration. 
+  if(fitnessValue == TRUE) indicator = c(indicator, "fitnessValue.iter", "fitnessValue.all")
+  if(dispersion == TRUE) indicator = c(indicator, "dispersion.iter", "dispersion.all")
+  if(evolutionPath == TRUE) indicator = c(indicator, "evolutionPath.iter", "evolutionPath.all")
+  #print(indicator)
   # initialize p-values of Chi-squared variance test
-  pvalue_current_gen_chi = numeric()
-  pvalue_preceding_gen_chi = numeric()
+  pvalue_current_gen_chi = list()
+  pvalue_preceding_gen_chi = list()
   # initialize p-values of the t-test on the regression coefficient
-  pvalue_current_gen_t = numeric()
-  pvalue_preceding_gen_t = numeric()
+  pvalue_current_gen_t = list()
+  pvalue_preceding_gen_t = list()
   # return stopping condition being compatible with cma-es implementation by Jakob Bossek
   return(makeStoppingCondition(
     name = "OCD",
@@ -261,45 +277,50 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL, fitnessValue = TRUE, dispe
     param.set = list(varLimit, nPreGen),
     stop.fun = function(envir = parent.frame()) {
       # Check if the number of iterations exceeds the user-defined number of maxGen. If TRUE, stop cma-es
-      
       if(envir$restartIter >= maxGen){
         return(envir$restartIter >= maxGen)
       }
       
       # Check if number of iterations is greater than user-defined nPreGen
       if(envir$restartIter > nPreGen){
-        # Here: In single objective optimization, the indicator of interest is the best fitness value of each generation.
-        # PF_i is the best fitness value of the i-th generation which is used as a reference value
-        # for calculating the indicator values of the last nPreGen generations
-        PF_i = envir$best.fitness
-        # PI_all is a vector with one entry for each generation, except the first generation.
-        # PI_all stores the difference between the performance indicator values of the last nPreGen generations and the current generation i.
-        PI_all = sapply((envir$generation.bestfitness)[-length(envir$generation.bestfitness)], function(x) x-PF_i, simplify = TRUE)
-        # normalize PI_all in range upper.bound - lower.bound, i.e. the range of the objective values after nPreGen generations.
-        # This value is fixed for all upcomming generations
-        PI_all = PI_all/(envir$upper.bound-envir$lower.bound)
-        # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
-        PI_current_gen = PI_all[(envir$iter-nPreGen):(envir$iter -1)]
-        #in the first test
-        if(envir$debug.logging == TRUE) write(collapse(PI_all), file = "debug.txt", append = TRUE)
-        if((envir$restartIter - nPreGen) <= 1){
-          # PI_preceding_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the last generation i-1.
-          PI_preceding_gen = PI_current_gen
-        }else{
-          PI_preceding_gen =  PI_all[(envir$iter - (nPreGen+1)):(envir$iter - 2)]
+        # PF_i is the indicator value of the current iteration (e.g. best fitness value, sigma, or the dispersion of the individuals)
+        # PF_i is used as a reference value for calculating the indicator values (difference to this value) of the last nPreGen generations.
+        # könnte man eleganter lösen, in der zweiten for-schleife direkt!!!
+        for (i in seq(1,length(indicator),2)){
+          PF_i = c(PF_i, get(indicator[i], envir$performance.measures))
         }
-        # perform chi2 variance tests and return corresponding p-values
-        pvalue_current_gen_chi = pChi2(varLimit, PI_current_gen)
-        pvalue_preceding_gen_chi = pChi2(varLimit, PI_preceding_gen)
-        # perform two-sided t-test and return corresponding p-values
-        pvalue_current_gen_t = pReg(PI_current_gen)
-        pvalue_preceding_gen_t = pReg(PI_preceding_gen)
-        # log termination condition in cma_es
-        if (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha) envir$stopped.on.chi = envir$stopped.on.chi + 1
-        if (pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha) envir$stopped.on.t = envir$stopped.on.t + 1
+        chi.test = FALSE
+        t.test = FALSE
+        for (i in seq(2, length(indicator), 2)){
+          # PI_all is a vector with one entry for each generation, except the first generation.
+          # PI_all stores the difference between the performance indicator values of the last nPreGen generations and the current generation i.
+          PI_all[[(i/2)]] = sapply(get(indicator[i], envir$performance.measures), function (x) abs(x-PF_i[[(i/2)]]), simplify = TRUE)
+          # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
+          PI_current_gen[[i/2]] = PI_all[[i/2]][(envir$iter-nPreGen):(envir$iter -1)]
+          # in the first test, PI_preceding_gen equals PI_current_gen as indexing in this iteration would be invalid
+          if((envir$restartIter - nPreGen) <= 1){
+            # PI_preceding_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the last generation i-1.
+            PI_preceding_gen = PI_current_gen
+          }else{
+            PI_preceding_gen[[i/2]] =  PI_all[[i/2]][(envir$iter - (nPreGen+1)):(envir$iter - 2)]
+          }
+          # perform chi2 variance tests and return corresponding p-values for each active performance indicator
+          pvalue_current_gen_chi[[i/2]] = pChi2(varLimit, PI_current_gen[[i/2]])
+          pvalue_preceding_gen_chi[[i/2]] = pChi2(varLimit, PI_preceding_gen[[i/2]])
+          # perform two-sided t-test and return corresponding p-values for each active performance indicator
+          pvalue_current_gen_t[[i/2]] = pReg(PI_current_gen[[i/2]])
+          pvalue_preceding_gen_t[[i/2]] = pReg(PI_preceding_gen[[i/2]])
+        }
+        # set chi.test to TRUE if the pvalue of the chi-squared variance test is below the significance level alpha, i.e. reject H0: var(PI) >= varLimit
+        if (all(pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha)) chi.test = TRUE
+        # set t.test to TRUE if the pvalue of the two sided t-test is above the significance level alpha, i.e. reject H0: beta=0
+        if (all(pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha)) t.test = TRUE
         # return TRUE, i.e. stop cmaes exectuion, if p-value is below specified significance level alpha
-        return (pvalue_current_gen_chi <= alpha && pvalue_preceding_gen_chi <= alpha || 
-                  pvalue_current_gen_t > alpha && pvalue_preceding_gen_t > alpha)
+        # log termination condition in cma_es
+        if (chi.test == TRUE) envir$stopped.on.chi = envir$stopped.on.chi + 1
+        if (t.test == TRUE) envir$stopped.on.t = envir$stopped.on.t + 1
+        # return TRUE, i.e. stop cmaes exectuion, if p-value is below specified significance level alpha
+        return (chi.test || t.test)
       }
       else{
         return(FALSE)
@@ -307,6 +328,7 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL, fitnessValue = TRUE, dispe
     }
   ))
 }
+
 
 #' @export
 pChi2 <- function (varLimit, PI) {
@@ -319,6 +341,7 @@ pChi2 <- function (varLimit, PI) {
   return (p)
 }
 
+#' @export
 pReg <- function (PI) {
   # Determin degrees of freedom
   N = length(PI)-1
