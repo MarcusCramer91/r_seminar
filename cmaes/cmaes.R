@@ -376,8 +376,8 @@ cmaes_custom = function(
                                     else unlist(generation.bestfitness[-length(generation.bestfitness)])/(upper.bound-lower.bound),
                                     "dispersion.iter" = unlist(dispersion[length(dispersion)])/(sqrt(n)), 
                                     "dispersion.all" = unlist(dispersion[-length(dispersion)])/(sqrt(n)),
-                                    "evolutionPath.iter" = evolutionPath[length(evolutionPath)], 
-                                    "evolutionPath.all" = evolutionPath[-length(evolutionPath)])
+                                    "evolutionPath.iter" = unlist(evolutionPath[length(evolutionPath)])/(sqrt(n)), 
+                                    "evolutionPath.all" = unlist(evolutionPath[-length(evolutionPath)])/(sqrt(n)))
         
       }
       
