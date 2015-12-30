@@ -270,9 +270,6 @@ cmaes_custom = function(
       } else {
         apply(arx.repaired, 2L, function(x) objective.fun(x))
       }
-      write(paste("Iteration:", iter), file = "arxrepaired_debug.txt", append = TRUE)
-      write(paste("Restart number:", restarts), file = "arxrepaired_debug.txt", append = TRUE)
-      write(collapse(arx.repaired), file = "arxrepaired_debug.txt", append = TRUE)
       
       # apply penalization (see Eq. 51)
       fitn = fitn.repaired + penalties
