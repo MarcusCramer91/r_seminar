@@ -17,7 +17,11 @@
 #dataframe should be separated at these points
 
 if (!"BBmisc" %in% rownames(installed.packages())) install.packages("BBmisc")
+if (!"snow" %in% rownames(installed.packages())) install.packages("snow")
+if (!"parallel" %in% rownames(installed.packages())) install.packages("parallel")
 require(BBmisc)
+require(snow)
+require(parallel)
 
 
 ######################################################################
@@ -174,6 +178,13 @@ readOutput = function(file) {
   avgConvergence = apply(allConvergence[,-1], 1, mean)
   avgConvergence = cbind(allConvergenceTicks, avgConvergence)
   
+  #save information about the function and the dimension
+  #exctract from file name
+  #this is somewhat dirty, but works if you do not rename files
+  filePart = substr(file, gregexpr("output", file)[[1]][length(gregexpr("output", file)[[1]])], nchar(file))
+  split = strsplit(filePart, "_")
+  functionID = as.numeric(split[[1]][2])
+  dimension = as.numeric(strsplit(split[[1]][3], "\\.")[[1]][1])
   #format return value
   result = list(allBest = allBest, avgBest = avgBest, overallBest = overallBest, overallWorst = overallWorst,
                 sdBest = sdBest, 
@@ -183,7 +194,8 @@ readOutput = function(file) {
                 allStagnations = allStagnations, longestStagnation = longestStagnation,
                 shortestStagnation = shortestStagnation, avgStagnation = avgStagnation, 
                 sdStagnations = sdStagnations, allConvergence = allConvergence, avgConvergence = avgConvergence,
-                allRestarts = allRestarts, t_test_termination = t_test_termination, chi_test_termination=chi_test_termination)
+                allRestarts = allRestarts, t_test_termination = t_test_termination, chi_test_termination=chi_test_termination,
+                functionID = functionID, dimension = dimension)
   class(result) = "single_bbob_result"
   return(result)
 }
@@ -334,6 +346,41 @@ loadAllResults = function(usedFunctions, usedDimensions, path, algorithmName) {
     }
   }
   return(allResults)
+}
+
+#loads all results that correspond to the naming conventions used by bbob_custom (parallel version)
+#gets more efficient the more different functions were used
+loadAllResultsParallel = function(usedFunctions, usedDimensions, path, algorithmName) {
+  allResults = NULL
+  pbar = makeProgressBar(min = 0, max = length(usedDimensions))
+  pbar$set(0)
+  nCores = detectCores()
+  cluster = snow:::makeCluster(nCores, type = "SOCK")
+  #export all environment functions
+  ex = Filter(function(x) is.function(get(x, .GlobalEnv)), ls(.GlobalEnv))
+  snow:::clusterExport(cluster, ex)
+  for (i in 1:length(usedDimensions)) {
+    results = snow:::clusterApply(cl = cluster, x = usedFunctions, function(x) readOutput(
+      paste(path, "/", algorithmName, "_output_", x, "_", usedDimensions[i], ".txt", sep = "")
+    ))
+    if (is.null(allResults)) allResults = results
+    else allResults = c(allResults, results)
+    pbar$set(i)
+  }
+  stopCluster(cluster)
+  #no order results as they might be out of order due to parallel jobs
+  sortedResults = NULL
+  for (i in usedFunctions) {
+    for (j in usedDimensions) {
+      for (k in 1:length(allResults)) {
+        if (allResults[[k]]$functionID == i & allResults[[k]]$dimension == j) {
+          if (is.null(sortedResults)) sortedResults = allResults[k]
+          else sortedResults = c(sortedResults, allResults[k])
+        }
+      }
+    }
+  }
+  return(sortedResults)
 }
 
 #aggregate avgBest, avgRun, avgRunEval, Convergence, Stagnation per function

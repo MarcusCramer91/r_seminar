@@ -4,6 +4,8 @@
 ###################################################################################
 #Output analysis of CMAES with only default stopping criteria
 
+if (!"ggplot2" %in% rownames(installed.packages())) install.packages("ggplot2")
+require(ggplot2)
 #source necessary functions
 source("output_interpreter.R")
 ################################################################################
@@ -201,13 +203,13 @@ lines((1:nrow(CMAES_only_default_aggResult$aggregatedAllConvergence)) * feMultip
 #load data for 100k function evaluations from random search, CMAES and GA to compare
 #this will probably take up to 10 minutes
 CMAES_default_restart_results = 
-  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_default_with_restart",
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_default_with_restart",
                  algorithmName = "CMAES")
 RS_results = 
-  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./Random_Search_100000",
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./Random_Search_100000",
                  algorithmName = "random search")
 GA_results = 
-  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./GA_default",
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./GA_default",
                  algorithmName = "GA")
 
 #aggregate results
@@ -215,15 +217,32 @@ CMAES_default_restart_results_agg = aggregateResults(CMAES_default_restart_resul
 RS_results_agg = aggregateResults(RS_results)
 GA_results_agg = aggregateResults(GA_results)
 
-#plot averaged convergencce
+#plot averaged convergence ggplot style
+png("test.png", height = 800, width = 800)
+ggplot(as.data.frame(CMAES_default_restart_results_agg$aggregatedAvgConvergence), 
+       aes(x = allConvergenceTicks, y = log(aggregatedAvgConvergence + 1))) + 
+  geom_line() +
+  xlab("Function evaluations") +
+  ylab("log(averaged convergence + 1)")
+dev.off()
+#we cannot see any advantage of using ggplot for now, so stick to normal plot
+#also ggplot looks horrible in RStudio when using a 4k-monitor
+
+#plot normal style
+png("allConvergence_noOCD.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
 plot(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,1],
-     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", ylim = c(5, 20))
+     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", ylim = c(5, 20),
+     xlab = "Function evaluations", ylab = "log(average convergence + 1)", cex.axis = 4, cex.lab = 4, lwd = 4)
 
 points(GA_results_agg$aggregatedAvgConvergence[,1],
-     log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red")
+     log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red", lwd = 4)
 
 points(RS_results_agg$aggregatedAvgConvergence[,1],
-       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green")
+       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green", lwd = 4)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
+dev.off()
 
 #plot number of function solved for gap = 1
 CMAES_default_restart_cumulativeDistribution = extractECDFofFunctions(
@@ -233,11 +252,17 @@ GA_cumulativeDistribution = extractECDFofFunctions(
 RS_cumulativeDistribution = extractECDFofFunctions(
   RS_results_agg, fitnessGap = 1)
 
+png("default_gap_1.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
 plot(CMAES_default_restart_cumulativeDistribution, col = "black", type = "l",
      xlim = c(0, 100000), 
-     ylim = c(0, 1))
-lines(GA_cumulativeDistribution, col = "red", type = "l")
-lines(RS_cumulativeDistribution, col = "green", type = "l")
+     ylim = c(0, 1), xlab = "Function evaluations", ylab = "% of functions", 
+     cex.axis = 4, cex.lab = 4, lwd = 4)
+lines(GA_cumulativeDistribution, col = "red", type = "l", lwd = 4)
+lines(RS_cumulativeDistribution, col = "green", type = "l", lwd = 4)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
+dev.off()
 
 #apparently CMAES just has horrible results for certain functions
 #find out these functions
