@@ -270,9 +270,6 @@ cmaes_custom = function(
       } else {
         apply(arx.repaired, 2L, function(x) objective.fun(x))
       }
-      write(paste("Iteration:", iter), file = "arxrepaired_debug.txt", append = TRUE)
-      write(paste("Restart number:", restarts), file = "arxrepaired_debug.txt", append = TRUE)
-      write(collapse(arx.repaired), file = "arxrepaired_debug.txt", append = TRUE)
       
       # apply penalization (see Eq. 51)
       fitn = fitn.repaired + penalties
@@ -377,22 +374,11 @@ cmaes_custom = function(
         performance.measures = list("fitnessValue.iter" = if(iter < param.set[[2]]) best.fitness else (best.fitness)/(upper.bound-lower.bound),
                                     "fitnessValue.all" = if(iter < param.set[[2]]) generation.bestfitness[-length(generation.bestfitness)]
                                     else unlist(generation.bestfitness[-length(generation.bestfitness)])/(upper.bound-lower.bound),
-                                    "dispersion.iter" = dispersion[length(dispersion)], 
-                                    "dispersion.all" = dispersion[-length(dispersion)],
+                                    "dispersion.iter" = unlist(dispersion[length(dispersion)])/(sqrt(n)), 
+                                    "dispersion.all" = unlist(dispersion[-length(dispersion)])/(sqrt(n)),
                                     "evolutionPath.iter" = evolutionPath[length(evolutionPath)], 
                                     "evolutionPath.all" = evolutionPath[-length(evolutionPath)])
         
-      }
-      # normalization and logging functionality for OCD
-      if ("OCD" %in% stop.ons.names) {
-        # get the call parameters from OCD needed for normalization
-        param.set = stop.ons[[grep("OCD",stop.ons)]]$param.set
-        # define upper and lower bound for normalization after nPreGen generations.
-        # bounds are fixed once nPreGen generations are reached.
-        if(iter == param.set[[2]]){
-          upper.bound = worst.fitness
-          lower.bound = min(unlist(generation.bestfitness))
-        }
       }
       
       
