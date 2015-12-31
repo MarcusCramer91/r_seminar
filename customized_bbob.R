@@ -11,6 +11,7 @@ require(snow)
 require(parallel)
 require(smoof)
 source("./cmaes/cmaes.R")
+source("rbga.R")
 
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 

@@ -1,6 +1,6 @@
 source("./cmaes/cmaes.R")
 source("customized_bbob.R")
-source("rbga.R")
+
 
 #default run of CMAES with only default stopping criteria
 suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_default_run", 
