@@ -121,7 +121,74 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
     }
   }
   #use default if no stopping criterion is defined
-  else result = cmaes(fun, monitor = monitor, debug.logging = debug.logging)
+  else result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging)
+  return(result)
+}
+
+#reduced optimizer that does not apply default stopping conditions
+#purely for showcasing purposes for the presentation, should never be used in practise
+optimizerCMAESWithoutDef = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, 
+                          debug.logging = FALSE, max_restarts, restart_multiplier, restart_triggers, OCD = FALSE,
+                          varLimit = NULL, nPreGen = NULL, maxGen = NULL, fitnessValue= FALSE, dispersion = FALSE,
+                          evolutionPath = FALSE) {
+  if(!grepl(":/", path, fixed = TRUE)) path = file.path(getwd(), path)
+  fun = makeBBOBFunction(dimension = dimension, fid = function_id, iid = instance)
+  #create .txt creating monitor
+  Fopt = getGlobalOptimum(fun)$value
+  monitor = makeTXTMonitor(max.params = 4L, path, Fopt, function_id, dimension, instance)
+  #use maxFE before maxit/stopfitness if both are not null
+  condition1 = NULL
+  condition2 = NULL
+  #use maxit before stopfitness
+  if (!is.null(maxFE)) condition1 = stopOnMaxEvals(maxFE)
+  else if (!is.null(maxit)) condition1 = stopOnMaxIters(maxit)
+  #stopFitness can only be used in combination with either maxFE or maxit (caught error)
+  result = NULL
+  if (OCD == TRUE) {
+    OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen, 
+                        fitnessValue = fitnessValue, dispersion = dispersion, evolutionPath = evolutionPath)
+    #also add the default stopping conditions to the restart triggers
+    #these need to be enabled at the same time as they perform some sanity checks
+    restart_triggers = c(restart_triggers, "tolX", "noEffectAxis", "noEffectCoord",
+                         "conditionCov", "indefCovMat")
+  }
+  if (!is.null(stopFitness)) {
+    optValue = getGlobalOptimum(fun)$value
+    condition2 = stopOnOptValue(optValue, stopFitness)
+    if (OCD == FALSE) {
+      result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging,
+                            control = list (stop.ons = c(list(condition1, condition2)), 
+                                            max.restarts = max_restarts,
+                                            restart.triggers = restart_triggers,
+                                            restart.multiplier = restart_multiplier))
+    }
+    else {
+      result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging,
+                            control = list (stop.ons = c(list(condition1, condition2, OCDcond)), 
+                                            max.restarts = max_restarts,
+                                            restart.triggers = restart_triggers,
+                                            restart.multiplier = restart_multiplier))
+    }
+  }
+  #if stop fitness is null
+  else if (!is.null(condition1)) {
+    if (OCD == FALSE) {
+      result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging, 
+                            control = list (stop.ons = c(list(condition1)),
+                                            max.restarts = max_restarts,
+                                            restart.triggers = restart_triggers,
+                                            restart.multiplier = restart_multiplier))
+    }
+    else { 
+      result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging, 
+                            control = list (stop.ons = c(list(condition1, OCDcond)),
+                                            max.restarts = max_restarts,
+                                            restart.triggers = restart_triggers,
+                                            restart.multiplier = restart_multiplier))    
+    }
+  }
+  #use default if no stopping criterion is defined
+  else result = cmaes_custom(fun, monitor = monitor, debug.logging = debug.logging)
   return(result)
 }
 

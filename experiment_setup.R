@@ -3,9 +3,31 @@ source("customized_bbob.R")
 
 
 #default run of CMAES with only default stopping criteria
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_default_run", 
+suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_default_run", 
                              maxit = NULL, stopFitness = NULL, maxFE = NULL, 
-                             function_ids = 1, instances = 1:15, dimensions = c(5)))
+                             function_ids = 1:24, instances = 1:15, dimensions = c(2, 5, 10, 20)))
+
+#simulate 5 restarts by running 5 times (used in the presentation)
+#also simulate a default run with 250000 max evaluations
+suppressWarnings(bbob_custom(optimizerCMAESWithoutDef, "cmaes1", "CMAES_restart_test", 
+                             maxit = NULL, stopFitness = NULL,  
+                             function_ids = 12, instances = 1, dimensions = 20, maxFE = 50000))
+suppressWarnings(bbob_custom(optimizerCMAESWithoutDef, "cmaes2", "CMAES_restart_test", 
+                             maxit = NULL, stopFitness = NULL, 
+                             function_ids = 12, instances = 1, dimensions = 20, maxFE = 50000))
+suppressWarnings(bbob_custom(optimizerCMAESWithoutDef, "cmaes3", "CMAES_restart_test", 
+                             maxit = NULL, stopFitness = NULL, 
+                             function_ids = 12, instances = 1, dimensions = 20, maxFE = 50000))
+suppressWarnings(bbob_custom(optimizerCMAESWithoutDef, "cmaes4", "CMAES_restart_test", 
+                             maxit = NULL, stopFitness = NULL, 
+                             function_ids = 12, instances = 1, dimensions = 20, maxFE = 50000))
+suppressWarnings(bbob_custom(optimizerCMAESWithoutDef, "cmaes5", "CMAES_restart_test", 
+                             maxit = NULL, stopFitness = NULL, 
+                             function_ids = 12, instances = 1, dimensions = 20, maxFE = 50000))
+suppressWarnings(bbob_custom(optimizerCMAESWithoutDef, "cmaes6", "CMAES_restart_test", 
+                             maxit = NULL, stopFitness = NULL, 
+                             function_ids = 12, instances = 1, dimensions = 20, maxFE = 250000))
+
 
 #run of random search with 100000 function evaluations
 #this result is used for comparison with simple random search

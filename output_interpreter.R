@@ -157,26 +157,19 @@ readOutput = function(file) {
   for (i in allRunIDs) {
     #get the data for the current run id
     tempData = data[which(data$run_id == i),]
-    #get the FE multiplier (how many FEs per iteration)
-    #for the random search result, this does not work, since only all 10 iterations information is logged
-    #so check if the output corresponds to RS logged output
-    if ((tempData[1,1] == tempData[1,2]) && ((tempData[1,2]+10) == tempData[2,2])) feMultiplier = 10
-    else feMultiplier = tempData[1,2]/tempData[1,1]
     #get iteration that corresponds closest to the convergence ticks
-    iterations = floor(allConvergenceTicks/feMultiplier)+1
-    #find out how many iterations are actually logged and do not get higher than this number
-    stoppingPoint = which((max(tempData[,1]) > iterations) == FALSE)[1]-1
-    #all iterations might be locked, in this case: skip
-    if (!is.na(stoppingPoint)) {
-      iterations[stoppingPoint:length(iterations)] = 
-        iterations[stoppingPoint]
-    }
-
+    iterations = findInterval(allConvergenceTicks, tempData[,2])
+    #findInterval returns 0 for the first element, replace by 1
+    iterations[1] = 1
     allConvergence = as.data.frame(cbind(allConvergence, tempData[iterations,3]))
   }
   allConvergence = as.data.frame(cbind(allConvergenceTicks, allConvergence))
-  avgConvergence = apply(allConvergence[,-1], 1, mean)
-  avgConvergence = cbind(allConvergenceTicks, avgConvergence)
+  #if there is only one run, no need to average anything
+  if (ncol(allConvergence) > 2) {
+    avgConvergence = apply(allConvergence[,-1], 1, mean)
+    avgConvergence = cbind(allConvergenceTicks, avgConvergence)
+  }
+  else avgConvergence = allConvergence
   
   #save information about the function and the dimension
   #exctract from file name
