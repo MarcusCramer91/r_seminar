@@ -170,7 +170,7 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
                                       OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = FALSE, 
-                                      dispersion = FALSE,  evolutionPath = TRUE, restart_multiplier = 1, 
+                                      dispersion = FALSE,  evolutionPath = TRUE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 #test for evolution path and dispersion
@@ -179,7 +179,7 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
                                       OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = FALSE, 
-                                      dispersion = TRUE,  evolutionPath = TRUE, restart_multiplier = 1, 
+                                      dispersion = TRUE,  evolutionPath = TRUE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 #test for evolution path and fitness
@@ -188,7 +188,7 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
                                       OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
-                                      dispersion = FALSE,  evolutionPath = TRUE, restart_multiplier = 1, 
+                                      dispersion = FALSE,  evolutionPath = TRUE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 #test for dispersion and fitness
@@ -197,7 +197,7 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
                                       OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
-                                      dispersion = TRUE,  evolutionPath = FALSE, restart_multiplier = 1, 
+                                      dispersion = TRUE,  evolutionPath = FALSE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 #test for all three
@@ -206,7 +206,7 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "C
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
                                       OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
-                                      dispersion = TRUE,  evolutionPath = TRUE, restart_multiplier = 1, 
+                                      dispersion = TRUE,  evolutionPath = TRUE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 ###### OCD with GA
@@ -217,7 +217,7 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "G
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
                                       OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = FALSE, 
-                                      dispersion = TRUE,  evolutionPath = FALSE, restart_multiplier = 1, 
+                                      dispersion = TRUE,  evolutionPath = FALSE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 
