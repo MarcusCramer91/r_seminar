@@ -134,12 +134,11 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
 ###### OCD with GA
 # fitnessValue as indicator
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "GA", 
-                                      data_directory = "GA_OCD_RUN_0.0001_1000", 
+                                      data_directory = "GA_OCD_RUN_0.0001_100_restarting", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
-                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.001, nPreGen = 100, fitnessValue = TRUE, 
-                                      dispersion = FALSE,restart_multiplier = 1, 
-                                      restart_triggers = "OCD"))
+                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, restart_multiplier = 2,
+                                      restart_triggers = "OCD", OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
+                                      dispersion = FALSE))
 
 
 
