@@ -1,7 +1,6 @@
 source("./cmaes/helpers.R")
 source("./cmaes/makeMonitor.R")
 source("./cmaes/makeStoppingCondition.R")
-source("./cmaes/OnlineConvergenceDetection.R")
 source("./cmaes/stoppingConditions.R")
 
 
@@ -371,13 +370,13 @@ cmaes_custom = function(
         # if necessary, normalize the performance indicator of interest. 
         # For example, fitnessValue is normalized in the range upper.bound - lower.bound, 
         # i.e. the range of the objective values after nPreGen generations as defined above. This value is fixed for all upcomming generations
-        performance.measures = list("fitnessValue.iter" = if(iter < param.set[[2]]) best.fitness else (best.fitness)/(upper.bound-lower.bound),
+        performance.indicator = list("fitnessValue.iter" = if(iter < param.set[[2]]) best.fitness else (best.fitness)/(upper.bound-lower.bound),
                                     "fitnessValue.all" = if(iter < param.set[[2]]) generation.bestfitness[-length(generation.bestfitness)]
                                     else unlist(generation.bestfitness[-length(generation.bestfitness)])/(upper.bound-lower.bound),
                                     "dispersion.iter" = unlist(dispersion[length(dispersion)])/(sqrt(n)), 
                                     "dispersion.all" = unlist(dispersion[-length(dispersion)])/(sqrt(n)),
-                                    "evolutionPath.iter" = evolutionPath[length(evolutionPath)], 
-                                    "evolutionPath.all" = evolutionPath[-length(evolutionPath)])
+                                    "evolutionPath.iter" = unlist(evolutionPath[length(evolutionPath)])/(sqrt(n)), 
+                                    "evolutionPath.all" = unlist(evolutionPath[-length(evolutionPath)])/(sqrt(n)))
         
       }
       

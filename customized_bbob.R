@@ -11,6 +11,7 @@ require(snow)
 require(parallel)
 require(smoof)
 source("./cmaes/cmaes.R")
+source("rbga.R")
 
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
@@ -199,19 +200,73 @@ optimizerRS = function(dimension, instance, function_id, maxit, maxFE, stopFitne
   return(result)
 }
 
-optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, OCD = FALSE,
-                       debug.logging = FALSE, max_restarts = 0, 
-                       restart_multiplier = 1, restart_triggers = character(0)) {
-  #set population size to recommended (see R docu) size of 10 * dimension
-  npop = dimension * 10
-  #if maxFE is specified, convert to maxit
-  if (!is.null(maxFE) && is.null(maxit)) maxit = maxFE / npop
-  # set value to be reached to global optimum + stopFitness
+
+optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, 
+                       debug.logging = FALSE, max_restarts, restart_multiplier, restart_triggers, OCD = FALSE,
+                       varLimit = NULL, nPreGen = NULL, maxGen = NULL, fitnessValue= FALSE, dispersion = FALSE,
+                       evolutionPath = FALSE) {
+  if(!grepl(":/", path, fixed = TRUE)) path = file.path(getwd(), path)
   fun = makeBBOBFunction(dimension = dimension, fid = function_id, iid = instance)
-  result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
-                stringMax = rep(5, dimension))
+  #create .txt creating monitor
+  npop = dimension * 10
+  # there must be a value for maxit. In order to guarantee the upper bound of 100000 function evaluations, set maxit to maxFE
+  if (!is.null(maxFE) && is.null(maxit)) maxit = maxFE
+  Fopt = getGlobalOptimum(fun)$value
+  monitor = makeTXTMonitor(max.params = 4L, path, Fopt, function_id, dimension, instance)
+  #use maxFE before maxit/stopfitness if both are not null
+  condition1 = NULL
+  condition2 = NULL
+  if(!is.null(maxFE)) condition1 = stopOnMaxEvals(maxFE)
+  #stopFitness can only be used in combination with either maxFE or maxit (caught error)
+  result = NULL
+  if (OCD == TRUE) {
+    OCDcond = stopOnOCD(varLimit = varLimit, nPreGen = nPreGen, maxGen = maxGen, 
+                        fitnessValue = fitnessValue, dispersion = dispersion, evolutionPath = evolutionPath)
+    #also add the default stopping conditions to the restart triggers
+    #these need to be enabled at the same time as they perform some sanity checks
+    restart_triggers = restart_triggers
+  }
+  if (!is.null(stopFitness) && !is.null(condition1)) {
+    optValue = getGlobalOptimum(fun)$value
+    condition2 = stopOnOptValue(optValue, stopFitness)
+    if (OCD == FALSE) {
+      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+                    stringMax = rep(5, dimension), control = list (stop.ons = c(list(condition1, condition2)), 
+                                                                   max.restarts = max_restarts,
+                                                                   restart.triggers = restart_triggers,
+                                                                   restart.multiplier = restart_multiplier))
+      
+    }
+    else {
+      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+                    stringMax = rep(5, dimension),control = list (stop.ons = c(list(condition1, condition2, OCDcond)), 
+                                                                  max.restarts = max_restarts,
+                                                                  restart.triggers = restart_triggers,
+                                                                  restart.multiplier = restart_multiplier))
+    }
+  }
+  #if stop fitness is null
+  else if (is.null(stopFitness) && !is.null(condition1)){
+    if (OCD == FALSE) {
+      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+                    stringMax = rep(5, dimension),control = list (stop.ons = list(condition1), 
+                                                                  max.restarts = max_restarts,
+                                                                  restart.triggers = restart_triggers,
+                                                                  restart.multiplier = restart_multiplier))
+    }
+    else { 
+      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+                    stringMax = rep(5, dimension),control = list (stop.ons = c(list(condition1, OCDcond)), 
+                                                                  max.restarts = max_restarts,
+                                                                  restart.triggers = restart_triggers,
+                                                                  restart.multiplier = restart_multiplier))
+    }
+  }
+  #use default if no stopping criterion is defined
+  else stop("Halt deine Fresse und gib mindestens eine stopping Condition ein")
   return(result)
 }
+
 
 #wrapper function for bbob_custom that parallelizes it
 #disables the progressbar so check the output files to see how far the algorithm has gottenhh

@@ -287,14 +287,14 @@ stopOnOCD = function(varLimit, nPreGen,maxGen = NULL, fitnessValue = TRUE, dispe
         # PF_i is used as a reference value for calculating the indicator values (difference to this value) of the last nPreGen generations.
         # könnte man eleganter lösen, in der zweiten for-schleife direkt!!!
         for (i in seq(1,length(indicator),2)){
-          PF_i = c(PF_i, get(indicator[i], envir$performance.measures))
+          PF_i = c(PF_i, get(indicator[i], envir$performance.indicator))
         }
         chi.test = FALSE
         t.test = FALSE
         for (i in seq(2, length(indicator), 2)){
           # PI_all is a vector with one entry for each generation, except the first generation.
           # PI_all stores the difference between the performance indicator values of the last nPreGen generations and the current generation i.
-          PI_all[[(i/2)]] = sapply(get(indicator[i], envir$performance.measures), function (x) abs(x-PF_i[[(i/2)]]), simplify = TRUE)
+          PI_all[[(i/2)]] = sapply(get(indicator[i], envir$performance.indicator), function (x) abs(x-PF_i[[(i/2)]]), simplify = TRUE)
           # PI_current_gen is a subset of PI_all which stores the last nPreGen indicator values with respect to the current generation i.
           PI_current_gen[[i/2]] = PI_all[[i/2]][(envir$iter-nPreGen):(envir$iter -1)]
           # in the first test, PI_preceding_gen equals PI_current_gen as indexing in this iteration would be invalid

@@ -1,8 +1,23 @@
+source("./cmaes/helpers.R")
+source("./cmaes/makeMonitor.R")
+source("./cmaes/makeStoppingCondition.R")
+source("./cmaes/stoppingConditions.R")
+
 rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL, 
           popSize = 200, iters = 100, mutationChance = NA, elitism = NA, 
           monitorFunc = NULL, evalFunc = NULL, showSettings = FALSE, 
-          verbose = FALSE, instance = 1) 
+          verbose = FALSE, instance = 1, control = list()) 
 {
+  
+  #=================================================================================
+  stop.ons = getRBGAParameter(control, "stop.ons", NULL)
+  restart.triggers = getRBGAParameter(control, "restart.triggers", character(0L))
+  stop.ons.names = sapply(stop.ons, function(stop.on) stop.on$code)
+  # check restart multiplier!!!!!! especially "default = 2"
+  restart.multiplier = getRBGAParameter(control, "restart.multiplier", 2)
+  max.restarts = getRBGAParameter(control, "max.restarts", 0L)
+  #=================================================================================
+  
   if (is.null(evalFunc)) {
     stop("A evaluation function must be provided. See the evalFunc parameter.")
   }
@@ -44,6 +59,43 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
   result = paste("Starting optimization. Instance:", instance, sep = "")
   
   if (vars > 0) {
+    
+    bestEvals = rep(NA, iters)
+    meanEvals = rep(NA, iters)
+    evalVals = rep(NA, popSize)
+    bestValue = Inf
+    
+    #========================================added section=========================================
+    # initialize list "generation.bestfitness" that stores the best fitness value of each iteration
+    generation.bestfitness = list()
+    # set initial wors.fitness to Inf
+    worst.fitness = Inf
+    # add evaluation counter, starting at 0L
+    n.evals = 0L
+    # somehow dirty trick to "really quit" if stopping condition is met and
+    # now more restart should be triggered.
+    do.terminate = FALSE
+    restarts = -1
+    # initialize stopped.on.t and stopped.on.chi that indicate the type of test which caused the termination of rbga.
+    # the stopping condition "stopOnOCD" sets the corresponding variable to "1" if that specific test has been significant.
+    stopped.on.t = 0
+    stopped.on.chi = 0
+    # restart loop
+    for (run in 0:max.restarts){
+      restarts = restarts + 1
+      if(run == 0) {
+        popSize = popSize
+      }else{
+        # increase population size if a restart has been triggered
+        popSize = popSize*restart.multiplier
+        
+      }
+      # no restart trigger fired until now
+      restarting = FALSE
+      # restart iter logs the amount of iterations within the current restart loop (for OCD)
+      restartIter = 0
+      #========================================added section=========================================
+      
     if (!is.null(suggestions)) {
       if (verbose) 
         cat("Adding suggestions to first population...\n")
@@ -69,11 +121,17 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
           (stringMax[var] - stringMin[var])
       }
     }
-    bestEvals = rep(NA, iters)
-    meanEvals = rep(NA, iters)
-    evalVals = rep(NA, popSize)
-    bestValue = Inf
+
     for (iter in 1:iters) {
+      
+      #========================================added section=========================================
+      # increase restartIter with each iteration of rbga
+      restartIter = restartIter + 1
+      # if a restart has been triggered break the inner loop 
+      # and increase the population size according to the restart multiplier (as specified above)
+      if(restarting) break
+      #========================================added section=========================================
+      
       if (verbose) 
         cat(paste("Starting iteration", iter, "\n"))
       if (verbose) 
@@ -110,6 +168,10 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
           cat("  sorting results...\n")
         sortedEvaluations = sort(evalVals, index = TRUE)
         if (sortedEvaluations$x[1] < bestValue) bestValue = sortedEvaluations$x[1]
+        #========================================added section=========================================
+        # update worst fitness value so far needed for the normalization of the performance indicator "fitnessValue"
+        if (sortedEvaluations$x[length(sortedEvaluations$x)] > worst.fitness | is.infinite(worst.fitness)) worst.fitness = sortedEvaluations$x[length(sortedEvaluations$x)]
+        #========================================added section=========================================
         sortedPopulation = matrix(population[sortedEvaluations$ix, 
                                              ], ncol = vars)
         if (elitism > 0) {
@@ -178,11 +240,69 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
             cat(paste(mutationCount, "mutations applied\n"))
         }
       }
+      
+      #========================================added section=========================================
+      # update evaluation counter
+      n.evals = n.evals + popSize
+      # compute gap between best fitness value so far and global optimum of the objective function
       gap = bestValue - getGlobalOptimum(evalFunc)$value
-      result = c(result, paste(iter, (iter * popSize), gap, bestValue))
+      result = c(result, paste(iter, n.evals, gap, bestValue))
+      best.fitness = bestValue
+      ######### normalization and logging functionality for OCD ########
+      if ("OCD" %in% stop.ons.names) {
+        # get the call parameters from OCD needed for normalization
+        param.set = stop.ons[[grep("OCD",stop.ons)]]$param.set
+        # log best fitness value per generation
+        generation.bestfitness[[iter]] = bestValue
+        # define upper and lower bound for normalization after nPreGen generations.
+        # bounds are fixed once nPreGen generations are reached.
+        if(iter == param.set[[2]]){
+          upper.bound = worst.fitness
+          lower.bound = best.fitness
+        }
+        # initialize list "dispersion" to be used as a performance indicator
+        # so far, dispersion is not enabled as a performance indicator of rbga, but could be integrated.
+        #dispersion[[iter]] = sum(abs(m-arx.repaired))
+      
+        # populate list with performance indicators for OCD.
+        # if necessary, normalize the performance indicator of interest. 
+        # For example, fitnessValue is normalized in the range upper.bound - lower.bound, 
+        # i.e. the range of the objective values after nPreGen generations as defined above. This value is fixed for all upcomming generations
+        performance.indicator = list("fitnessValue.iter" = if(iter < param.set[[2]]) best.fitness else (best.fitness)/(upper.bound-lower.bound),
+                                    "fitnessValue.all" = if(iter < param.set[[2]]) generation.bestfitness[-length(generation.bestfitness)]
+                                    else unlist(generation.bestfitness[-length(generation.bestfitness)])/(upper.bound-lower.bound))
+        
+      }
+      
+      # check stopping conditions: this section is copied from cmaes implementation of Jakob Bossek.
+      # Every required implementation (e.g. makeStoppingCondition.R) remains unchanged. The type of each stopping condition as an output of
+      # makeStoppingCondition.R is "cma-es stopping condition", therefore.
+      stop.obj = checkStoppingConditions(stop.ons)
+      n.stop.codes = length(stop.obj$codes)
+      if (max.restarts > 0L && any(stop.obj$codes %in% restart.triggers)) {
+        n.stop.codes = sum(!(stop.obj$codes %in% restart.triggers))
+        restarting = TRUE
+      }
+      if(!restarting && (n.stop.codes > 0L)) {
+        do.terminate = TRUE
+        break
+      }
     }
+      if(do.terminate){
+        break
+      }
+    }
+    #========================================added section=========================================
   }
+  
   result = c(result, "Optimization terminated")
+  result = c(result, paste("-1", restarts))
+  # log the type of test that caused the termination of cma-es in the output data.
+  # "-2" indicated the termination based on the chi-squared test, "-3" indicates the termination based on the t-test
+  if ("OCD" %in% stop.ons.names) {
+    result = c(result, paste("-2", stopped.on.t))
+    result = c(result, paste("-3", stopped.on.chi))
+  }
   #result = list(type = "floats chromosome", stringMin = stringMin, 
   #              stringMax = stringMax, popSize = popSize, iters = iters, 
   #              suggestions = suggestions, population = population, elitism = elitism, 

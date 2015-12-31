@@ -14,3 +14,7 @@ getCMAESParameter = function(control, what, default) {
 norm2 = function(x) {
   return(drop(sqrt(crossprod(x))))
 }
+
+getRBGAParameter = function(control, what, default) {
+  return(coalesce(control[[what]], default))
+}
