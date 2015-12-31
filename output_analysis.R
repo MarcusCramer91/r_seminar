@@ -280,15 +280,15 @@ dev.off()
 png("allConvergence_noOCD.png", height = 1200, width = 1200)
 par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
-plot(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,1],
-     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", ylim = c(5, 20),
+plot(CMAES_default_restart_results_agg$aggregatedAvgConvergence[CMAES_default_restart_results_agg$aggregatedAvgConvergence[,1] < 100000,1],
+     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence[CMAES_default_restart_results_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), type = "l", ylim = c(5, 20),
      xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4)
 
-points(GA_results_agg$aggregatedAvgConvergence[,1],
-     log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red", lwd = 4)
+points(GA_results_agg$aggregatedAvgConvergence[GA_results_agg$aggregatedAvgConvergence[,1] < 100000,1],
+     log(GA_results_agg$aggregatedAvgConvergence[GA_results_agg$aggregatedAvgConvergence[,1] < 100000,2])+1, type = "l", col = "red", lwd = 4)
 
-points(RS_results_agg$aggregatedAvgConvergence[,1],
-       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green", lwd = 4)
+points(RS_results_agg$aggregatedAvgConvergence[RS_results_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(RS_results_agg$aggregatedAvgConvergence[RS_results_agg$aggregatedAvgConvergence[,1] < 100000,2])+1, type = "l", col = "green", lwd = 4)
 legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
@@ -300,15 +300,24 @@ GA_cumulativeDistribution = extractECDFofFunctions(
 RS_cumulativeDistribution = extractECDFofFunctions(
   RS_results_agg, fitnessGap = 1)
 
+#limit to only entries below 100000 FEs
+cumulativeDistCMAES = CMAES_default_restart_cumulativeDistribution[CMAES_default_restart_cumulativeDistribution[,1] < 100000,]
+cumulativeDistGA = GA_cumulativeDistribution[GA_cumulativeDistribution[,1] < 100000,]
+cumulativeDistRS = RS_cumulativeDistribution[RS_cumulativeDistribution[,1] < 100000,]
+#add a point at at 100000 FEs so that graph extends to that point
+cumulativeDistCMAES = rbind(cumulativeDistCMAES, c(100000, cumulativeDistCMAES[nrow(cumulativeDistCMAES),2]))
+cumulativeDistGA = rbind(cumulativeDistGA, c(100000, cumulativeDistGA[nrow(cumulativeDistGA),2]))
+cumulativeDistRS = rbind(cumulativeDistRS, c(100000, cumulativeDistRS[nrow(cumulativeDistRS),2]))
 png("default_gap_1.png", height = 1200, width = 1200)
 par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
-plot(CMAES_default_restart_cumulativeDistribution, col = "black", type = "l",
+plot(cumulativeDistCMAES,
+     col = "black", type = "l",
      xlim = c(0, 100000), 
      ylim = c(0, 1), xlab = "Function evaluations", ylab = "% of functions", 
      cex.axis = 4, cex.lab = 4, lwd = 4)
-lines(GA_cumulativeDistribution, col = "red", type = "l", lwd = 4)
-lines(RS_cumulativeDistribution, col = "green", type = "l", lwd = 4)
+lines(cumulativeDistGA, col = "red", type = "l", lwd = 4)
+lines(cumulativeDistRS, col = "green", type = "l", lwd = 4)
 legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
@@ -352,25 +361,27 @@ dev.off()
 #apparently function 12 is a major outlier
 #plot convergence without function 12
 avgConvergence_CMAES = averageConvergence(allConvergence = CMAES_default_restart_results_agg$aggregatedAllConvergence,
-                                          includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
+                                          includedFunctions = c(1:7, 9:24), includedDimensions = (1:4), 
                                           nDimensions = 4)
 avgConvergence_GA = averageConvergence(allConvergence = GA_results_agg$aggregatedAllConvergence,
-                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
+                                       includedFunctions = c(1:7, 9:24), includedDimensions = (1:4), 
                                        nDimensions = 4)
 avgConvergence_RS = averageConvergence(allConvergence = RS_results_agg$aggregatedAllConvergence,
-                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
+                                       includedFunctions = c(1:7, 9:24), includedDimensions = (1:4), 
                                        nDimensions = 4)
 
-png("allConvergence_noOCD_noFunction12.png", height = 1200, width = 1200)
+png("allConvergence_noOCD_noFunction8.png", height = 1200, width = 1200)
 par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
-plot(avgConvergence_CMAES[,1],
-     log(avgConvergence_CMAES[,2]+1), type = "l", ylim = c(0, 20), xlab = "Function evaluations", ylab = "log(best value + 1)",
+#limit to entries below 100.000
+#due to massively increasing populations, FEs might exceed 100.000 (it is only checked every iteration)
+plot(avgConvergence_CMAES[avgConvergence_CMAES[,1] < 100000,1],
+     log(avgConvergence_CMAES[avgConvergence_CMAES[,1] < 100000,2]+1), type = "l", ylim = c(0, 20), xlab = "Function evaluations", ylab = "log(best value + 1)",
      cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5)
-points(avgConvergence_GA[,1],
-       log(GA_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "red",  lwd = 4)
-points(avgConvergence_RS[,1],
-       log(RS_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "green", lwd = 4)
+points(avgConvergence_GA[avgConvergence_GA[,1] < 100000,1],
+       log(avgConvergence_GA[avgConvergence_GA[,1] < 100000,2]+1), type = "l", col = "red",  lwd = 4)
+points(avgConvergence_RS[avgConvergence_RS[,1] < 100000,1],
+       log(avgConvergence_RS[avgConvergence_RS[,1] < 100000,2]+1), type = "l", col = "green", lwd = 4)
 legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
@@ -413,27 +424,27 @@ dev.off()
 
 #plot the convergence without dimension 20 and without function 12
 avgConvergence_CMAES = averageConvergence(allConvergence = CMAES_default_restart_results_agg$aggregatedAllConvergence,
-                                          includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
+                                          includedFunctions = c(1:7, 9:24), includedDimensions = (1:3), 
                                           nDimensions = 4)
 avgConvergence_GA = averageConvergence(allConvergence = GA_results_agg$aggregatedAllConvergence,
-                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
+                                       includedFunctions = c(1:7, 9:24), includedDimensions = (1:3), 
                                        nDimensions = 4)
 avgConvergence_RS = averageConvergence(allConvergence = RS_results_agg$aggregatedAllConvergence,
-                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
+                                       includedFunctions = c(1:7, 9:24), includedDimensions = (1:3), 
                                        nDimensions = 4)
 
-png("allConvergence_noOCD_noFunction12_noDim20.png", height = 1200, width = 1200)
+png("allConvergence_noOCD_noFunction8_noDim20.png", height = 1200, width = 1200)
 par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
-plot(avgConvergence_CMAES[,1],
-     log(avgConvergence_CMAES[,2]+1), type = "l", ylim = c(0, 20), xlab = "Function evaluations", ylab = "log(best value + 1)",
+plot(avgConvergence_CMAES[avgConvergence_CMAES[,1] < 100000,1],
+     log(avgConvergence_CMAES[avgConvergence_CMAES[,1] < 100000,2]+1), type = "l", ylim = c(0, 20), xlab = "Function evaluations", ylab = "log(best value + 1)",
      cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5)
 
-points(avgConvergence_GA[,1],
-       log(GA_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "red", lwd = 4)
+points(avgConvergence_GA[avgConvergence_GA[,1] < 100000,1],
+       log(avgConvergence_GA[avgConvergence_GA[,1] < 100000,2]+1), type = "l", col = "red", lwd = 4)
 
-points(avgConvergence_RS[,1],
-       log(RS_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "green", lwd = 4)
+points(avgConvergence_RS[avgConvergence_RS[,1] < 100000,1],
+       log(avgConvergence_RS[avgConvergence_RS[,1] < 100000,2]+1), type = "l", col = "green", lwd = 4)
 legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
@@ -493,6 +504,16 @@ allAverageBest = c(CMAES_OCD1_agg$aggregatedAvgBest,
                    CMAES_OCD7_agg$aggregatedAvgBest, 
                    CMAES_OCD8_agg$aggregatedAvgBest, 
                    CMAES_OCD9_agg$aggregatedAvgBest)
+
+allAverageRestarts = c(mean(CMAES_OCD1_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD2_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD3_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD4_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD5_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD6_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD7_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD8_agg$aggregatedAllRestarts),
+                       mean(CMAES_OCD9_agg$aggregatedAllRestarts))
 
 png("OCD_Parametrization.png", width = 1200, height = 1200)
 par(mar=c(25,9,5,2))
@@ -572,7 +593,7 @@ dev.off()
 
 #plot above plots WITHOUT default
 png("OCD_Parametrization_withoutDefault.png", width = 1200, height = 1200)
-par(mar=c(25,9,5,2))
+par(mar=c(25,9,5,9))
 par(mgp = c(6,2,0))
 par(las = 3)
 plot(allAverageBest, axes = FALSE, pch = 16, ylim = c(0, CMAES_default_restart_results_agg$aggregatedAvgBest), 
@@ -589,7 +610,13 @@ axis(1, at = 1:9, labels = c("0.01; 10",
                              "0.0001; 1000"), cex.axis = 4)
 axis(2, at = c(200000, 700000, 1200000), labels = c("2e05", "7e05", "1.2e06"), cex.axis = 4)
 box()
+
+par(new = TRUE)
+plot(allAverageRestarts, pch = 16, axes = FALSE, xlab = NA, ylab = NA, cex = 5)
+axis(side = 4, cex.axis = 4)
+mtext(side = 4, line = 5, "Average restarts", cex = 4)
 dev.off()
+#default restarts
 
 #apparently varLimit = 0.0001 and nPreGen = 100 yields the best results
 #this is number 8
