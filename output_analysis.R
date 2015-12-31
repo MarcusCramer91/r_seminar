@@ -11,38 +11,47 @@ source("output_interpreter.R")
 ################################################################################
 #get results for the first default run
 CMAES_only_default_results = 
-  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_only_default")
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_only_default", 
+                 algorithmName = "CMAES")
 
 #aggregate results
 CMAES_only_default_aggResult = aggregateResults(CMAES_only_default_results)
 
 #get data for cumulative distribution
 CMAES_only_default_cumulativeDistribution1 = extractECDFofFunctions(
-  CMAES_only_default_aggResult, fitnessGap = 1000)
-CMAES_only_default_cumulativeDistribution2 = extractECDFofFunctions(
   CMAES_only_default_aggResult, fitnessGap = 100)
-CMAES_only_default_cumulativeDistribution3 = extractECDFofFunctions(
-  CMAES_only_default_aggResult, fitnessGap = 10)
-CMAES_only_default_cumulativeDistribution4 = extractECDFofFunctions(
+CMAES_only_default_cumulativeDistribution2 = extractECDFofFunctions(
   CMAES_only_default_aggResult, fitnessGap = 1)
-CMAES_only_default_cumulativeDistribution5 = extractECDFofFunctions(
-  CMAES_only_default_aggResult, fitnessGap = 1e-02)
-CMAES_only_default_cumulativeDistribution6 = extractECDFofFunctions(
+CMAES_only_default_cumulativeDistribution3 = extractECDFofFunctions(
   CMAES_only_default_aggResult, fitnessGap = 1e-04)
-CMAES_only_default_cumulativeDistribution7 = extractECDFofFunctions(
-  CMAES_only_default_aggResult, fitnessGap = 1e-06)
-CMAES_only_default_cumulativeDistribution8 = extractECDFofFunctions(
+CMAES_only_default_cumulativeDistribution4 = extractECDFofFunctions(
   CMAES_only_default_aggResult, fitnessGap = 1e-08)
-plot(CMAES_only_default_cumulativeDistribution1, col = "red", type = "l")
-lines(CMAES_only_default_cumulativeDistribution2, col = "blue", type = "l")
-lines(CMAES_only_default_cumulativeDistribution3, col = "green", type = "l")
-lines(CMAES_only_default_cumulativeDistribution4, col = "cyan", type = "l")
-lines(CMAES_only_default_cumulativeDistribution5, col = "yellow", type = "l")
-lines(CMAES_only_default_cumulativeDistribution6, col = "darkgoldenrod", type = "l")
-lines(CMAES_only_default_cumulativeDistribution7, col = "grey", type = "l")
-lines(CMAES_only_default_cumulativeDistribution8, col = "deeppink", type = "l")
 
-##############################
+png("default_only_expectedFE.png", width = 1200, height = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(CMAES_only_default_cumulativeDistribution1, col = "red", type = "l", xlab = "Function evaluations", 
+     ylab = "% of functions solved", cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5, axes = FALSE, ylim = c(0, 1.5))
+axis(1, cex.axis = 4)
+axis(2, at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1), cex.axis = 4)
+box()
+lines(CMAES_only_default_cumulativeDistribution2, col = "blue", type = "l", lwd = 4)
+lines(CMAES_only_default_cumulativeDistribution3, col = "green", type = "l", lwd = 4)
+lines(CMAES_only_default_cumulativeDistribution4, col = "black", type = "l", lwd = 4)
+legend("topright", legend = c("100", "1", "1e-04", "1e-08"), col = c("red", "blue", "green", "black"), lwd = 4, cex = 4)
+dev.off()
+
+#analyze average convergence behavior
+png("convergence_default_only.png", width = 1200, height = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(CMAES_only_default_aggResult$aggregatedAvgConvergence[,1], log(CMAES_only_default_aggResult$aggregatedAvgConvergence[,2]+1), 
+     col = "black", type = "l", xlab = "Function evaluations", 
+     ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5)
+dev.off()
+
+
+#
 #analyze convergence behavior on different functions
 aggregatedConvergenceFunctions = getAggregatedConvergenceFunctions(CMAES_only_default_aggResult, 
                                                                    nFunctions = 24, nDimensions = 4)
@@ -81,38 +90,46 @@ which(CMAES_only_default_aggResult$aggregatedAllStagnation ==
 #420
 420/15
 #file number 28
-file = "./Stagnation_analysis/CMAES_output_7_20.txt"
+file = "./CMAES_only_default/CMAES_output_7_20.txt"
 worstStagnation = readOutput(file)
-worstStagnationIndex = which(worstStagnation$allStagnations == max(worstStagnation$allStagnations))
+worstStagnationIndex = which(worstStagnation$allStagnations == max(worstStagnation$allStagnations)) + 1
 feMultiplier = worstStagnation$allRunsEval[worstStagnationIndex] / 
   worstStagnation$allRuns[worstStagnationIndex]
-worstStagnationData = worstStagnation$allConvergence[,worstStagnationIndex]
-plot((1:worstStagnation$allRuns[worstStagnationIndex]*feMultiplier), 
-           log(worstStagnationData[1:worstStagnation$allRuns[worstStagnationIndex]]+1),type = "l")
+worstStagnationData = worstStagnation$allConvergence[,c(1,worstStagnationIndex)]
+
+
+png("default_worst_stagnation.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(worstStagnationData[,1], 
+           log(worstStagnationData[,2]+1),type = "l", lwd = 4, cex = 5, cex.lab = 4, cex.axis = 4,
+     xlab = "Function evaluations", ylab = "log(average best value + 1)")
 
 #draw red lines where stagnation takes place
-lines(((worstStagnation$allRuns[worstStagnationIndex]-max(worstStagnation$allStagnations)):
-         (worstStagnation$allRuns[worstStagnationIndex])*feMultiplier),
-      log(worstStagnationData[(length(worstStagnationData)-max(worstStagnation$allStagnations)):
-                            (length(worstStagnationData))]+1), 
-      col ="red", cex = 2)
+lines(worstStagnationData[worstStagnationData[,2] == min(worstStagnationData[,2]),1], 
+      log(worstStagnationData[worstStagnationData[,2] == min(worstStagnationData[,2]),2]+1), col = "red", lwd = 4)
 
-activeFunctions = getActiveFunctions(CMAES_only_default_aggResult)
-feMultiplier = CMAES_only_default_aggResult$aggregatedAvgRunEval/CMAES_only_default_aggResult$aggregatedAvgRun
-plot((1:length(activeFunctions))*feMultiplier, activeFunctions, type = "l")
+dev.off()
 
-
-s#plot runtime
+#plot runtime
 boxplot(x = CMAES_only_default_aggResult$aggregatedAllRunsEval)
 
 #plot stagnation time
 #multiply by eval/iter ratio
+png("default_stagnation.png", height = 1200, width = 1200)
+par(mar=c(9,9,5,2))
+par(mgp = c(6,2,0))
 boxplot(CMAES_only_default_aggResult$aggregatedAllStagnation 
-        * (CMAES_only_default_aggResult$aggregatedAllRunsEval / CMAES_only_default_aggResult$aggregatedAllRuns))
+        * (CMAES_only_default_aggResult$aggregatedAllRunsEval / CMAES_only_default_aggResult$aggregatedAllRuns),
+        ylab = "Stagnation length", cex.lab = 4, cex = 5, cex.axis = 4)
+dev.off()
+
+
 plot(ecdf(CMAES_only_default_aggResult$aggregatedAllStagnation))
 hist(log(CMAES_only_default_aggResult$aggregatedAllStagnation))
 
 #plot average best solutions
+#deprecated
 nFunctions = 24
 nDimensions = 4
 nInstances = 15
@@ -143,60 +160,91 @@ plot(log(averages+1), axes = FALSE)
 axis(1, at = seq(2, 24, by = 2))
 axis(2)
 box()
+#deprecated end
 
-#get average best per dimension
-averagesDim = double(0)
-for (i in 1:nDimensions) {
-  relevantIndexes = seq(from = i, to = (nDimensions*nFunctions)-(nDimensions-i), by = nDimensions)
-  #consider cleaned elements
-  relevantIndexes = relevantIndexes[!relevantIndexes %in% outlierVector]
-  averagesDim = c(averagesDim, mean(avgBest[relevantIndexes]))
-}
+#plots to show that multiple restarts might result in better solutions
 
-#add one in order to avoid large negative values for log -> better readibility of the plot
-plot(c(2, 5, 10, 20), log(averagesDim+1), axes = FALSE)
-
-#plots to show that multiple restarts make for better solutions
-
-file1 = "./restart_test_runs/CMAES_output_10_20_1.txt"
-file2 = "./restart_test_runs/CMAES_output_10_20_2.txt"
-file3 = "./restart_test_runs/CMAES_output_10_20_3.txt"
-file4 = "./restart_test_runs/CMAES_output_10_20_4.txt"
-file5 = "./restart_test_runs/CMAES_output_10_20_5.txt"
+file1 = "./CMAES_restart_test/cmaes1_output_12_20.txt"
+file2 = "./CMAES_restart_test/cmaes2_output_12_20.txt"
+file3 = "./CMAES_restart_test/cmaes3_output_12_20.txt"
+file4 = "./CMAES_restart_test/cmaes4_output_12_20.txt"
+file5 = "./CMAES_restart_test/cmaes5_output_12_20.txt"
+file6 = "./CMAES_restart_test/cmaes6_output_12_20.txt"
 restart_test1 = readOutput(file1)
 restart_test2 = readOutput(file2)
 restart_test3 = readOutput(file3)
 restart_test4 = readOutput(file4)
 restart_test5 = readOutput(file5)
+restart_test6 = readOutput(file6)
 
 #order descending
 restart_test1$allBest #3
-restart_test2$allBest #5
-restart_test3$allBest #1
-restart_test4$allBest #3
-restart_test5$allBest #1
+restart_test2$allBest #1
+restart_test3$allBest #5
+restart_test4$allBest #2
+restart_test5$allBest #4
 
-feMultiplier = restart_test1$longestRunEval / restart_test1$longestRun
+#concatenate all results to show the current best results over all restarts
+cumulated = c(restart_test2$avgConvergence[,2], 
+                  restart_test4$avgConvergence[,2],
+                  restart_test1$avgConvergence[,2],
+                  restart_test5$avgConvergence[,2],
+                  restart_test3$avgConvergence[,2])
+cumulatedTicks = c(restart_test2$avgConvergence[,1], 
+                   restart_test4$avgConvergence[,1]+50000,
+                   restart_test1$avgConvergence[,1]+100000,
+                   restart_test5$avgConvergence[,1]+150000,
+                   restart_test3$avgConvergence[,1]+200000)
+#get the current best result (red line in the plot)
+bestLine = numeric()
+for (i in 1:length(cumulated)) {
+  bestLine = c(bestLine, min(cumulated[1:i]))
+}
+
 #assume all restarts are equally long
-plot((((5-5) * restart_test3$longestRun + 1):(restart_test3$longestRun * (5-4)))* feMultiplier, 
-     log(restart_test3$allConvergence[,1]+1), type = "l", 
-     xlim = c(0, (restart_test3$longestRun * feMultiplier * 5)), ylim = c(12, 18))
-
-lines((((5-4) * restart_test5$longestRun + 1):(restart_test5$longestRun * (5-3)))* feMultiplier, 
-     log(restart_test5$allConvergence[,1]+1))
-
-lines((((5-3) * restart_test2$longestRun + 1):(restart_test2$longestRun * (5-2)))* feMultiplier, 
-      log(restart_test2$allConvergence[,1]+1))
-
-lines((((5-2) * restart_test4$longestRun + 1):(restart_test4$longestRun * (5-1)))* feMultiplier, 
-      log(restart_test4$allConvergence[,1]+1))
-
-lines((((5-1) * restart_test2$longestRun + 1):(restart_test2$longestRun * (5-0)))* feMultiplier, 
-      log(restart_test2$allConvergence[,1]+1))
+png("restart_demo.png", height = 1200, width = 2000)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(restart_test2$avgConvergence[,1], 
+     log(restart_test2$avgConvergence[,2]+1), type = "l", 
+     xlim = c(0, (restart_test4$longestRunEval * 5)), ylim = c(0,30), xlab = "Function evaluations",
+     ylab = "log(average best value + 1)", cex = 5, lwd = 4, cex.lab = 4, cex.axis = 4)
+lines(restart_test4$avgConvergence[,1] + 50000, 
+      log(restart_test4$avgConvergence[,2]+1), lwd = 4)
+lines(restart_test1$avgConvergence[,1] + 100000, 
+      log(restart_test1$avgConvergence[,2]+1), lwd = 4)
+lines(restart_test5$avgConvergence[,1] + 150000, 
+      log(restart_test5$avgConvergence[,2]+1), lwd = 4)
+lines(restart_test3$avgConvergence[,1] + 200000, 
+      log(restart_test3$avgConvergence[,2]+1), lwd = 4)
+#nudge by 0.1 so the original line is still visible
+lines(cumulatedTicks, log(bestLine+1)+0.1, col = "red", lwd = 4)
+legend("topright", legend = c("Independent restarts", "Current best"), col = c("black", "red"), lwd = 4, cex = 4)
+dev.off()
 
 #in comparison the normal run
-lines((1:nrow(CMAES_only_default_aggResult$aggregatedAllConvergence)) * feMultiplier,
-  log(CMAES_only_default_aggResult$aggregatedAllConvergence[,40])+1, type = "l", col = "red")
+png("restart_demo2.png", height = 1200, width = 2000)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(restart_test2$avgConvergence[,1], 
+     log(restart_test2$avgConvergence[,2]+1), type = "l", 
+     xlim = c(0, (restart_test4$longestRunEval * 5)), ylim = c(0,30), xlab = "Function evaluations",
+     ylab = "log(average best value + 1)", cex = 5, lwd = 4, cex.lab = 4, cex.axis = 4)
+lines(restart_test4$avgConvergence[,1] + 50000, 
+      log(restart_test4$avgConvergence[,2]+1), lwd = 4)
+lines(restart_test1$avgConvergence[,1] + 100000, 
+      log(restart_test1$avgConvergence[,2]+1), lwd = 4)
+lines(restart_test5$avgConvergence[,1] + 150000, 
+      log(restart_test5$avgConvergence[,2]+1), lwd = 4)
+lines(restart_test3$avgConvergence[,1] + 200000, 
+      log(restart_test3$avgConvergence[,2]+1), lwd = 4)
+lines(restart_test6$avgConvergence[,1],
+  log(restart_test6$avgConvergence[,2]+1), type = "l", col = "green", lwd = 4)
+#nudge by 0.1 so the original line is still visible
+lines(cumulatedTicks, log(bestLine+1)+0.1, col = "red", lwd = 4)
+legend("topright", legend = c("Independent restarts", "Current best", "Default run without restarts"), 
+       col = c("black", "red", "green"), lwd = 4, cex = 4)
+dev.off()
 
 
 #######################################################################
@@ -234,7 +282,7 @@ par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
 plot(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,1],
      log(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", ylim = c(5, 20),
-     xlab = "Function evaluations", ylab = "log(average convergence + 1)", cex.axis = 4, cex.lab = 4, lwd = 4)
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4)
 
 points(GA_results_agg$aggregatedAvgConvergence[,1],
      log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red", lwd = 4)
@@ -272,44 +320,59 @@ avgBestPerFunction_GA = getAvgBestPerFunction(results = GA_results_agg, nFunctio
                                               nDimensions = 4)
 avgBestPerFunction_RS = getAvgBestPerFunction(results = RS_results_agg, nFunctions = 24, 
                                               nDimensions = 4)
-plot(log(avgBestPerFunction_CMAES+1), pch = 16, ylim = c(0, 20), axes = FALSE, xlab = "Dimension", 
-     ylab = "log(best value + 1)")
-axis(1, at = 1:24)
-axis(2)
+
+png("default_best_per_function.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(log(avgBestPerFunction_CMAES+1), pch = 16, ylim = c(0, 20), axes = FALSE, 
+     ylab = "log(average best value + 1)", xlab = "Function",
+     cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5)
+axis(1, at = 1:24, cex.axis = 4)
+axis(2, cex.axis = 4)
 box()
-points(log(avgBestPerFunction_GA+1), col = "red", pch = 16)
-points(log(avgBestPerFunction_RS+1), col = "green", pch = 16)
+points(log(avgBestPerFunction_GA+1), col = "red", pch = 16, cex = 5)
+points(log(avgBestPerFunction_RS+1), col = "green", pch = 16, cex = 5)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), pch = 16, cex = 4)
+dev.off()
 #without the logarithm, the result is even more drastic
-plot(avgBestPerFunction_CMAES, pch = 16, ylim = c(0, 20), axes = FALSE, xlab = "Dimension", 
-     ylab = "log(best value + 1)")
-axis(1, at = 1:24)
-axis(2)
+png("default_best_per_function_non_log.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(avgBestPerFunction_CMAES, pch = 16, axes = FALSE, 
+     ylab = "Average best value", xlab = "Function",
+     cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5)
+axis(1, at = 1:24, cex.axis = 4)
+axis(2, cex.axis = 4)
 box()
-points(avgBestPerFunction_GA, col = "red", pch = 16)
-points(avgBestPerFunction_RS, col = "green", pch = 16)
+points(avgBestPerFunction_GA, col = "red", pch = 16, cex = 5)
+points(avgBestPerFunction_RS, col = "green", pch = 16, cex = 5)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), pch = 16, cex = 4)
+dev.off()
 
 #apparently function 12 is a major outlier
 #plot convergence without function 12
 avgConvergence_CMAES = averageConvergence(allConvergence = CMAES_default_restart_results_agg$aggregatedAllConvergence,
                                           includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
                                           nDimensions = 4)
-
-plot(avgConvergence_CMAES[,1],
-     log(avgConvergence_CMAES[,2])+1, type = "l", ylim = c(5, 20), xlab = "Function evaluations", ylab = "log(best value + 1)")
-
 avgConvergence_GA = averageConvergence(allConvergence = GA_results_agg$aggregatedAllConvergence,
-                                          includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
+                                       includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
                                        nDimensions = 4)
-
-points(avgConvergence_GA[,1],
-       log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red")
-
 avgConvergence_RS = averageConvergence(allConvergence = RS_results_agg$aggregatedAllConvergence,
                                        includedFunctions = c(1:11, 13:24), includedDimensions = (1:4), 
                                        nDimensions = 4)
 
+png("allConvergence_noOCD_noFunction12.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(avgConvergence_CMAES[,1],
+     log(avgConvergence_CMAES[,2]+1), type = "l", ylim = c(0, 20), xlab = "Function evaluations", ylab = "log(best value + 1)",
+     cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5)
+points(avgConvergence_GA[,1],
+       log(GA_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "red",  lwd = 4)
 points(avgConvergence_RS[,1],
-       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green")
+       log(RS_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "green", lwd = 4)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
+dev.off()
 
 #now, CMAES already is much better than random search
 
@@ -320,40 +383,260 @@ avgBestPerDimension_GA = getAvgBestPerDimension(results = GA_results_agg, nFunct
                                               nDimensions = 4)
 avgBestPerDimension_RS = getAvgBestPerDimension(results = RS_results_agg, nFunctions = 24, 
                                               nDimensions = 4)
+
+png("default_best_per_dimension.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
 plot(log(avgBestPerDimension_CMAES+1), pch = 16, ylim = c(0, 20), axes = FALSE, xlab = "Dimension", 
-     ylab = "log(best value + 1)")
-axis(1, at = 1:4, labels = c("2", "5", "10", "20"))
-axis(2)
+     ylab = "log(average best value + 1)", cex = 5, cex.lab = 5)
+axis(1, at = 1:4, labels = c("2", "5", "10", "20"), cex.axis = 4)
+axis(2, cex.axis = 4)
 box()
-points(log(avgBestPerDimension_GA+1), col = "red", pch = 16)
-points(log(avgBestPerDimension_RS+1), col = "green", pch = 16)
+points(log(avgBestPerDimension_GA+1), col = "red", pch = 16, cex = 5)
+points(log(avgBestPerDimension_RS+1), col = "green", pch = 16, cex = 5)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
+dev.off()
 #without the logarithm, the result is even more drastic
-plot(avgBestPerDimension_CMAES+1, pch = 16, axes = FALSE, xlab = "Dimension", 
-     ylab = "log(best value + 1)")
-axis(1, at = 1:4, labels = c("2", "5", "10", "20"))
-axis(2)
+png("default_best_per_dimension_non_log.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(avgBestPerDimension_CMAES, pch = 16, axes = FALSE, xlab = "Dimension", 
+     ylab = "Average best value", cex = 5, cex.lab = 5, ylim = c(0, max(avgBestPerDimension_CMAES) + 
+                                                                            max(avgBestPerDimension_CMAES)/2)) 
+axis(1, at = 1:4, labels = c("2", "5", "10", "20"), cex.axis = 4)
+axis(2, cex.axis = 4)
 box()
-points(avgBestPerDimension_GA, col = "red", pch = 16)
-points(avgBestPerDimension_RS, col = "green", pch = 16)
+points(avgBestPerDimension_GA, col = "red", pch = 16, cex = 5)
+points(avgBestPerDimension_RS, col = "green", pch = 16, cex = 5)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
+dev.off()
 
 #plot the convergence without dimension 20 and without function 12
 avgConvergence_CMAES = averageConvergence(allConvergence = CMAES_default_restart_results_agg$aggregatedAllConvergence,
                                           includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
                                           nDimensions = 4)
-
-plot(avgConvergence_CMAES[,1],
-     log(avgConvergence_CMAES[,2])+1, type = "l", ylim = c(2, 20), xlab = "Function evaluations", ylab = "log(best value + 1)")
-
 avgConvergence_GA = averageConvergence(allConvergence = GA_results_agg$aggregatedAllConvergence,
                                        includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
                                        nDimensions = 4)
-
-points(avgConvergence_GA[,1],
-       log(GA_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "red")
-
 avgConvergence_RS = averageConvergence(allConvergence = RS_results_agg$aggregatedAllConvergence,
                                        includedFunctions = c(1:11, 13:24), includedDimensions = (1:3), 
                                        nDimensions = 4)
 
+png("allConvergence_noOCD_noFunction12_noDim20.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(avgConvergence_CMAES[,1],
+     log(avgConvergence_CMAES[,2]+1), type = "l", ylim = c(0, 20), xlab = "Function evaluations", ylab = "log(best value + 1)",
+     cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5)
+
+points(avgConvergence_GA[,1],
+       log(GA_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "red", lwd = 4)
+
 points(avgConvergence_RS[,1],
-       log(RS_results_agg$aggregatedAvgConvergence[,2])+1, type = "l", col = "green")
+       log(RS_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", col = "green", lwd = 4)
+legend("topright", legend = c("CMA-ES", "GA", "RS"), col = c("black", "red", "green"), lty = 1, lwd = 4, cex = 4)
+dev.off()
+
+
+##########################################
+#compare different settings for ocd
+#load all configuration results
+CMAES_OCD1 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.01_10",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD1 = 
+  loadAllResults(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.01_10",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD2 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.01_100",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD3 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.01_1000",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD4 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.001_10",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD5 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.001_100",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD6 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.001_1000",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD7 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.0001_10",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD8 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.0001_100",
+                         algorithmName = "CMAES_OCD")
+CMAES_OCD9 = 
+  loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./OCD_parametrization/OCD_RUN_0.0001_1000",
+                         algorithmName = "CMAES_OCD")
+
+#aggregate results
+CMAES_OCD1_agg = aggregateResults(CMAES_OCD1)
+CMAES_OCD2_agg = aggregateResults(CMAES_OCD2)
+CMAES_OCD3_agg = aggregateResults(CMAES_OCD3)
+CMAES_OCD4_agg = aggregateResults(CMAES_OCD4)
+CMAES_OCD5_agg = aggregateResults(CMAES_OCD5)
+CMAES_OCD6_agg = aggregateResults(CMAES_OCD6)
+CMAES_OCD7_agg = aggregateResults(CMAES_OCD7)
+CMAES_OCD8_agg = aggregateResults(CMAES_OCD8)
+CMAES_OCD9_agg = aggregateResults(CMAES_OCD9)
+
+#plot the average best results WITH default configuration
+allAverageBest = c(CMAES_OCD1_agg$aggregatedAvgBest, 
+                   CMAES_OCD2_agg$aggregatedAvgBest, 
+                   CMAES_OCD3_agg$aggregatedAvgBest, 
+                   CMAES_OCD4_agg$aggregatedAvgBest, 
+                   CMAES_OCD5_agg$aggregatedAvgBest, 
+                   CMAES_OCD6_agg$aggregatedAvgBest, 
+                   CMAES_OCD7_agg$aggregatedAvgBest, 
+                   CMAES_OCD8_agg$aggregatedAvgBest, 
+                   CMAES_OCD9_agg$aggregatedAvgBest)
+
+png("OCD_Parametrization.png", width = 1200, height = 1200)
+par(mar=c(25,9,5,2))
+par(mgp = c(6,2,0))
+par(las = 3)
+plot(allAverageBest, axes = FALSE, pch = 16, ylim = c(0, CMAES_default_restart_results_agg$aggregatedAvgBest), 
+                                                      xlab = "", ylab = "Average best value", cex = 5, cex.lab = 4, 
+                                                      type = "h", lwd = 4)
+axis(1, at = 1:9, labels = c("0.01; 10", 
+                             "0.01; 100",
+                             "0.01; 1000",
+                             "0.001; 10",
+                             "0.001; 100",
+                             "0.001; 1000",
+                             "0.0001; 10",
+                             "0.0001; 100",
+                             "0.0001; 1000"), cex.axis = 4)
+axis(2, at = c(200000, 700000, 1200000), labels = c("2e05", "7e05", "1.2e06"), cex.axis = 4)
+box()
+#add the average best of default run
+lines(c(0,17), c(CMAES_default_restart_results_agg$aggregatedAvgBest, CMAES_default_restart_results_agg$aggregatedAvgBest), 
+     col = "red", lwd = 4)
+dev.off()
+
+#apparently varLimit = 0.0001 and nPreGen = 100 yields the best results
+#this is number 8
+
+#plot the convergence
+png("convergence_OCD_parametrization.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,1],
+     log(CMAES_default_restart_results_agg$aggregatedAvgConvergence[,2]+1), type = "l", ylim = c(5, 20),
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "red")
+
+#due to large population sizes, 100k FEs can be surpassed
+#limit plot to 100k FEs
+points(CMAES_OCD1_agg$aggregatedAvgConvergence[CMAES_OCD1_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD1_agg$aggregatedAvgConvergence[CMAES_OCD1_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD2_agg$aggregatedAvgConvergence[CMAES_OCD2_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD2_agg$aggregatedAvgConvergence[CMAES_OCD2_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD3_agg$aggregatedAvgConvergence[CMAES_OCD3_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD3_agg$aggregatedAvgConvergence[CMAES_OCD3_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD4_agg$aggregatedAvgConvergence[CMAES_OCD4_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD4_agg$aggregatedAvgConvergence[CMAES_OCD4_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD5_agg$aggregatedAvgConvergence[CMAES_OCD5_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD5_agg$aggregatedAvgConvergence[CMAES_OCD5_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD6_agg$aggregatedAvgConvergence[CMAES_OCD6_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD6_agg$aggregatedAvgConvergence[CMAES_OCD6_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD7_agg$aggregatedAvgConvergence[CMAES_OCD7_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD7_agg$aggregatedAvgConvergence[CMAES_OCD7_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "cyan", lwd = 4)
+
+points(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+legend("topright", legend = c("Other OCD", "Default CMA-ES", "0.0001; 100"), 
+       col = c("black", "red", "cyan"), lty = 1, lwd = 4, cex = 4)
+dev.off()
+
+#plot above plots WITHOUT default
+png("OCD_Parametrization_withoutDefault.png", width = 1200, height = 1200)
+par(mar=c(25,9,5,2))
+par(mgp = c(6,2,0))
+par(las = 3)
+plot(allAverageBest, axes = FALSE, pch = 16, ylim = c(0, CMAES_default_restart_results_agg$aggregatedAvgBest), 
+     xlab = "", ylab = "Average best value", cex = 5, cex.lab = 4, 
+     type = "h", lwd = 4)
+axis(1, at = 1:9, labels = c("0.01; 10", 
+                             "0.01; 100",
+                             "0.01; 1000",
+                             "0.001; 10",
+                             "0.001; 100",
+                             "0.001; 1000",
+                             "0.0001; 10",
+                             "0.0001; 100",
+                             "0.0001; 1000"), cex.axis = 4)
+axis(2, at = c(200000, 700000, 1200000), labels = c("2e05", "7e05", "1.2e06"), cex.axis = 4)
+box()
+dev.off()
+
+#apparently varLimit = 0.0001 and nPreGen = 100 yields the best results
+#this is number 8
+
+#plot the convergence
+png("convergence_OCD_parametrization_withoutDefault.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(CMAES_OCD1_agg$aggregatedAvgConvergence[CMAES_OCD1_agg$aggregatedAvgConvergence[,1] < 100000,1],
+     log(CMAES_OCD1_agg$aggregatedAvgConvergence[CMAES_OCD1_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+     type = "l", ylim = c(5, 20),
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "black")
+
+#due to large population sizes, 100k FEs can be surpassed
+#limit plot to 100k FEs
+points(CMAES_OCD2_agg$aggregatedAvgConvergence[CMAES_OCD2_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD2_agg$aggregatedAvgConvergence[CMAES_OCD2_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD3_agg$aggregatedAvgConvergence[CMAES_OCD3_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD3_agg$aggregatedAvgConvergence[CMAES_OCD3_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD4_agg$aggregatedAvgConvergence[CMAES_OCD4_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD4_agg$aggregatedAvgConvergence[CMAES_OCD4_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD5_agg$aggregatedAvgConvergence[CMAES_OCD5_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD5_agg$aggregatedAvgConvergence[CMAES_OCD5_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD6_agg$aggregatedAvgConvergence[CMAES_OCD6_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD6_agg$aggregatedAvgConvergence[CMAES_OCD6_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD7_agg$aggregatedAvgConvergence[CMAES_OCD7_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD7_agg$aggregatedAvgConvergence[CMAES_OCD7_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "cyan", lwd = 4)
+
+points(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "red", lwd = 4)
+
+legend("topright", legend = c("Other OCD", "0.0001; 1000", "0.0001; 100"), 
+       col = c("black", "red", "cyan"), lty = 1, lwd = 4, cex = 4)
+dev.off()
