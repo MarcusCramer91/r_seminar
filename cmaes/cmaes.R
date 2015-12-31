@@ -1,7 +1,6 @@
 source("./cmaes/helpers.R")
 source("./cmaes/makeMonitor.R")
 source("./cmaes/makeStoppingCondition.R")
-source("./cmaes/OnlineConvergenceDetection.R")
 source("./cmaes/stoppingConditions.R")
 
 
