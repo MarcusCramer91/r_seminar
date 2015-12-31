@@ -6,7 +6,7 @@ source("./cmaes/stoppingConditions.R")
 rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL, 
           popSize = 200, iters = 100, mutationChance = NA, elitism = NA, 
           monitorFunc = NULL, evalFunc = NULL, showSettings = FALSE, 
-          verbose = FALSE, instance = 1, control = list()) 
+          verbose = FALSE, instance, control = list()) 
 {
   
   #=================================================================================

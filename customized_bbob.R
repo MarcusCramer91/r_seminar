@@ -230,7 +230,7 @@ optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitne
     optValue = getGlobalOptimum(fun)$value
     condition2 = stopOnOptValue(optValue, stopFitness)
     if (OCD == FALSE) {
-      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+      result = rbga(popSize = dimension * 10, instance = instance, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
                     stringMax = rep(5, dimension), control = list (stop.ons = c(list(condition1, condition2)), 
                                                                    max.restarts = max_restarts,
                                                                    restart.triggers = restart_triggers,
@@ -238,7 +238,7 @@ optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitne
       
     }
     else {
-      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+      result = rbga(popSize = dimension * 10, instance = instance, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
                     stringMax = rep(5, dimension),control = list (stop.ons = c(list(condition1, condition2, OCDcond)), 
                                                                   max.restarts = max_restarts,
                                                                   restart.triggers = restart_triggers,
@@ -248,14 +248,14 @@ optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitne
   #if stop fitness is null
   else if (is.null(stopFitness) && !is.null(condition1)){
     if (OCD == FALSE) {
-      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+      result = rbga(popSize = dimension * 10, instance = instance, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
                     stringMax = rep(5, dimension),control = list (stop.ons = list(condition1), 
                                                                   max.restarts = max_restarts,
                                                                   restart.triggers = restart_triggers,
                                                                   restart.multiplier = restart_multiplier))
     }
     else { 
-      result = rbga(popSize = dimension * 10, iters = maxit, evalFunc = fun, stringMin = rep(-5, dimension), 
+      result = rbga(popSize = dimension * 10, iters = maxit, instance = instance, evalFunc = fun, stringMin = rep(-5, dimension), 
                     stringMax = rep(5, dimension),control = list (stop.ons = c(list(condition1, OCDcond)), 
                                                                   max.restarts = max_restarts,
                                                                   restart.triggers = restart_triggers,
