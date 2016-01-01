@@ -246,7 +246,7 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
       n.evals = n.evals + popSize
       # compute gap between best fitness value so far and global optimum of the objective function
       gap = bestValue - getGlobalOptimum(evalFunc)$value
-      result = c(result, paste(iter, n.evals, gap, bestValue))
+      result = c(result, paste(restartIter, n.evals, gap, bestValue))
       best.fitness = bestValue
       ######### normalization and logging functionality for OCD ########
       if ("OCD" %in% stop.ons.names) {
