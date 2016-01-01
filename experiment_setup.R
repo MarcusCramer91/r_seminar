@@ -194,7 +194,7 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       restart_triggers = "OCD"))
 
 #test for all three
-suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "CMAES_OCD", 
+suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
                                       data_directory = "OCD_evo_disp_fit", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
@@ -206,11 +206,11 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "C
 #fitnessValue as indicator is taken from above runs
 #test for only dispersion
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "GA", 
-                                      data_directory = "GA_OCD_RUN_0.0001_1000", 
+                                      data_directory = "GA_OCD_RUN_0.0001_100", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
                                       stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = FALSE, 
-                                      dispersion = TRUE,  evolutionPath = FALSE, restart_multiplier = 2, 
+                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
+                                      dispersion = FALSE,  evolutionPath = FALSE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
 
