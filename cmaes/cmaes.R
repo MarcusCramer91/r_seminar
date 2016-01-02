@@ -108,15 +108,7 @@ cmaes_custom = function(
   if (isMultiobjective(objective.fun)) {
     stopf("CMA-ES can only handle single-objective functions.")
   }
-  
-  if (!is.null(start.point)) {
-    assertNumeric(start.point, len = n, any.missing = FALSE)
-  } else {
-    if (!hasFiniteBoxConstraints(par.set)) {
-      stopf("No start point provided. Cannot generate one, because parameter set cannot sample with Inf bounds!")
-    }
-    start.point = unlist(sampleValue(par.set))
-  }
+
   
   if (!is.null(monitor)) {
     assertClass(monitor, "cma_monitor")
@@ -156,10 +148,7 @@ cmaes_custom = function(
   # ======================================== added ====================================
   worst.fitness = Inf
   # ======================================== added ====================================
-  
-  # set initial distribution mean
-  m = start.point
-  
+
   # logs
   population.trace = list()
   
@@ -188,6 +177,18 @@ cmaes_custom = function(
   do.terminate = FALSE
   restarts = -1
   for (run in 0:max.restarts) {
+    
+    if (!is.null(start.point)) {
+      assertNumeric(start.point, len = n, any.missing = FALSE)
+    } else {
+      if (!hasFiniteBoxConstraints(par.set)) {
+        stopf("No start point provided. Cannot generate one, because parameter set cannot sample with Inf bounds!")
+      }
+      start.point = unlist(sampleValue(par.set))
+    }
+    # set initial distribution mean
+    m = start.point
+    
     restarts = restarts + 1
     # population and offspring size
     if (run == 0) {

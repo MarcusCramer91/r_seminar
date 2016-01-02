@@ -159,8 +159,8 @@ readOutput = function(file) {
     tempData = data[which(data$run_id == i),]
     #get iteration that corresponds closest to the convergence ticks
     iterations = findInterval(allConvergenceTicks, tempData[,2])
-    #findInterval returns 0 for the first element, replace by 1
-    iterations[1] = 1
+    #findInterval returns 0 for the first element(s), replace by 1
+    iterations[which(iterations == 0)] = 1
     allConvergence = as.data.frame(cbind(allConvergence, tempData[iterations,3]))
   }
   allConvergence = as.data.frame(cbind(allConvergenceTicks, allConvergence))
@@ -376,11 +376,6 @@ loadAllResultsParallel = function(usedFunctions, usedDimensions, path, algorithm
   return(sortedResults)
 }
 
-#aggregate avgBest, avgRun, avgRunEval, Convergence, Stagnation per function
-aggregatePerFunction = function(results, nFunctions, nDimensions) {
-  #todo
-}
-
 #get convergence averaged per function (over all dimensions)
 getAggregatedConvergenceFunctions = function(results, nFunctions, nDimensions) {
   allConvergence = results$aggregatedAllConvergence
@@ -432,17 +427,18 @@ getAvgBestPerDimension = function(results, nFunctions, nDimensions) {
 #functions stop e.g. when a certain solution quality is reached
 getActiveFunctions = function(results) {
   notConverged = integer(0)
-  allRuns = results$aggregatedAllRuns
-  for (i in 1:results$aggregatedLongestRun) {
+  allRunsEval = results$aggregatedAllRunsEval
+  ticks = seq(from = 1, to = results$aggregatedLongestRunEval, by = 100)
+  for (i in ticks) {
     currentlyNotConverged = 0
     #track remove runs from the vector that did not satisfy the if clause in the loop (because 
     #they will never again)
     removeVector = integer(0)
-    for (j in 1:length(allRuns)) {
-      if (allRuns[j] > i) currentlyNotConverged = currentlyNotConverged + 1
+    for (j in 1:length(allRunsEval)) {
+      if (allRunsEval[j] > i) currentlyNotConverged = currentlyNotConverged + 1
       else removeVector = c(removeVector, j)
     }
-    if (length(removeVector) > 0) allRuns = allRuns[-removeVector]
+    if (length(removeVector) > 0) allRunsEval = allRunsEval[-removeVector]
     j = j - length(removeVector)
     notConverged = c(notConverged, currentlyNotConverged)
   }
@@ -462,4 +458,75 @@ averageConvergence = function(allConvergence, includedFunctions, includedDimensi
   }
   avgConvergence = avgConvergence / (length(includedFunctions)*length(includedDimensions))
   avgConvergence = cbind(allConvergence[,1], avgConvergence)
+}
+
+#checks whether all required logs for the R file output_analysis.R exist
+checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15) {
+  pbar = makeProgressBar(min = 1, max = length(requiredDirs))
+  checkSuccessful = TRUE
+  #get all directories in current working directory
+  allDirs = dir()[file.info(dir())$isdir]
+  allDirs = c(allDirs, paste("OCD_parametrization/", dir("./OCD_parametrization"), sep = ""))
+  requiredDirs = c("CMAES_default_with_restart", "CMAES_OCD_no_restarts", "CMAES_only_default", "GA_default",
+                   "GA_OCD", "OCD_disp", "OCD_disp_fit", "OCD_evo", "OCD_evo_disp", "OCD_evo_disp_fit", 
+                   "OCD_evo_fit", "OCD_fit", "Random_Search_100000", "OCD_parametrization/OCD_RUN_0.01_10", 
+                   "OCD_parametrization/OCD_RUN_0.01_100", "OCD_parametrization/OCD_RUN_0.01_1000", "OCD_parametrization/OCD_RUN_0.001_10",
+                   "OCD_parametrization/OCD_RUN_0.001_100", "OCD_parametrization/OCD_RUN_0.001_1000", 
+                   "OCD_parametrization/OCD_RUN_0.0001_10", "OCD_parametrization/OCD_RUN_0.0001_100", 
+                   "OCD_parametrization/OCD_RUN_0.0001_1000", "CMAES_default_with_restart2", 
+                   "2016-01-01_GA_default2", "OCD_evo_disp2", "GA_OCD2")
+  for (i in 1:length(requiredDirs)) {
+    if (length(grep(requiredDirs[i], allDirs)) == 0) {
+      print(paste("Required directory", requiredDirs[i], "is missing."))
+      checkSuccessful = FALSE
+    }
+  }
+  #list all names of the algorithms, the dimensions and functions to check for names
+  algorithmNames = c("cmaes", "CMAES_OCD", "GA", "random search")
+  #match algorithm names to dirs
+  dirAlgorithmMatch = c(1, 2, 1, 3, 3, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 3, 2, 3)
+  #check if all required .txt files exist
+  for (i in 1:length(requiredDirs)) {
+    pbar$set(i)
+    currentDir = requiredDirs[i]
+    currentFiles = dir(currentDir)
+    for (j in 1:length(usedFunctions)) {
+      for (k in 1:length(usedDimensions)) {
+        currentFile = paste(algorithmNames[dirAlgorithmMatch[i]], "_output_", usedFunctions[j], "_", usedDimensions[k], ".txt", 
+                            sep = "")
+        if (length(grep(currentFile, currentFiles, ignore.case = TRUE)) == 0) {
+          print(paste("Required file", currentFile, "in directory", currentDir, "is missing"))
+          checkSuccessful = FALSE
+        }
+        data = read.table(paste(currentDir, currentFile, sep = "/"), skip = 0, fill = TRUE, row.names = NULL)
+        #check whether nInstances are logged 
+        if (algorithmNames[dirAlgorithmMatch[i]] != "random search") {
+          if (length(grep("\\<Instance\\>", data[,3])) != nInstances) {
+            print(paste("Number of found instances deviates from specified number of distances in file", 
+                       currentFile, "in directory", 
+                       currentDir, ". Should be", nInstances, 
+                       "but is", length(grep("\\<Instance\\>", data[,3]))))
+            checkSuccessful = FALSE
+          }
+        }
+      }
+    }
+  }
+  #separate test for the restart run test
+  if (length(grep("CMAES_restart_test", allDirs)) == 0) {
+    print("Required directory CMAES_restart_test is missing.")
+    checkSuccessful = FALSE
+  }
+  else {
+    currentFiles = dir("CMAES_restart_test")
+    if (length(grep("cmaes1_output_12_20", allDirs)) == 0) print("Required file cmaes1_output_12_20 in directory CMAES_restart_test is missing.")
+    if (length(grep("cmaes2_output_12_20", allDirs)) == 0) print("Required file cmaes2_output_12_20 in directory CMAES_restart_test is missing.")
+    if (length(grep("cmaes3_output_12_20", allDirs)) == 0) print("Required file cmaes3_output_12_20 in directory CMAES_restart_test is missing.")
+    if (length(grep("cmaes4_output_12_20", allDirs)) == 0) print("Required file cmaes4_output_12_20 in directory CMAES_restart_test is missing.")
+    if (length(grep("cmaes5_output_12_20", allDirs)) == 0) print("Required file cmaes5_output_12_20 in directory CMAES_restart_test is missing.")
+    if (length(grep("cmaes6_output_12_20", allDirs)) == 0) print("Required file cmaes6_output_12_20 in directory CMAES_restart_test is missing.")
+  }
+  
+  if(checkSuccessful) print("Syntax check revealed no anomalies. Proceed to generate output")
+  return(checkSuccessful)
 }

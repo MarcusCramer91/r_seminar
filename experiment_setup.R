@@ -35,29 +35,12 @@ suppressWarnings(bbob_custom(optimizerRS, "random search", "Random_Search_100000
                                       function_ids = 1:24, instances = 1:15,
                                       dimensions = c(2,5,10,20), maxFE = 100000))
 
-#use this run to show the advantages of multiple restarts with the same settings on the same function
-#use a difficult function like 10 for this
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "restart_test_run1", 
-                             maxit = NULL, stopFitness = NULL, maxFE = 50000, 
-                             function_ids = 10, instances = 1, dimensions = 20))
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "restart_test_run2", 
-                             maxit = NULL, stopFitness = NULL, maxFE = 50000, 
-                             function_ids = 10, instances = 1, dimensions = 20))
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "restart_test_run3", 
-                             maxit = NULL, stopFitness = NULL, maxFE = 50000, 
-                             function_ids = 10, instances = 1, dimensions = 20))
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "restart_test_run4", 
-                             maxit = NULL, stopFitness = NULL, maxFE = 50000, 
-                             function_ids = 10, instances = 1, dimensions = 20))
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "restart_test_run5", 
-                             maxit = NULL, stopFitness = NULL, maxFE = 50000, 
-                             function_ids = 10, instances = 1, dimensions = 20))
 
 #run CMAES with maximum of 100k function evaluations and default conditions as restart conditions
 #set max restarts = maxFE so it does not limit the algorithm
 #throws an error sometimes, but i dont know why and when
 #also limit the stopfitness to 1e-08 so that no computation time is wasted
-suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_default_with_restart", 
+suppressWarnings(bbob_custom_parallel(optimizerCMAES, "CMAES", "CMAES_default_with_restart", 
                              maxit = NULL, stopFitness = 1e-08, maxFE = 100000, 
                              function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20),
                              max_restarts = 100000, restart_multiplier = 2, 
@@ -65,9 +48,6 @@ suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_default_wi
                                                   "conditionCov", "indefCovMat"), debug.logging = FALSE))
 
 suppressWarnings(bbob_custom_parallel(optimizerGA, "GA", "GA_default", 
-                                      maxit = NULL, stopFitness = 1e-08, maxFE = 100000,
-                                      function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20)))
-suppressWarnings(bbob_custom(optimizerGA, "GA", "GA_default", 
                                       maxit = NULL, stopFitness = 1e-08, maxFE = 100000,
                                       function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20)))
 
@@ -147,6 +127,8 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       restart_triggers = "OCD"))
 
 #run for different performance indicators
+#fitnessValue as indicator is taken from above runs
+#test for only dispersion
 #test for dispersion only
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
                                       data_directory = "OCD_disp", 
@@ -203,8 +185,6 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       restart_triggers = "OCD"))
 
 ###### OCD with GA
-#fitnessValue as indicator is taken from above runs
-#test for only dispersion
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "GA", 
                                       data_directory = "GA_OCD_RUN_0.0001_100", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
@@ -213,14 +193,43 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "G
                                       dispersion = FALSE,  evolutionPath = FALSE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
+#run OCD without restarts
+suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
+                                      data_directory = "CMAES_OCD_no_restarts", 
+                                      dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
+                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 0, 
+                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
+                                      dispersion = FALSE,  evolutionPath = FALSE, restart_multiplier = 2, 
+                                      restart_triggers = "OCD"))
 
 
+#repeat final runs to test whether the result remains stable
+suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
+                                      data_directory = "OCD_evo_disp2", 
+                                      dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
+                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
+                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = FALSE, 
+                                      dispersion = TRUE,  evolutionPath = TRUE, restart_multiplier = 2, 
+                                      restart_triggers = "OCD"))
 
+suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_default_with_restart2", 
+                                      maxit = NULL, stopFitness = 1e-08, maxFE = 100000, 
+                                      function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20),
+                                      max_restarts = 100000, restart_multiplier = 2, 
+                                      restart_triggers = c("tolX", "noEffectAxis", "noEffectCoord",
+                                                           "conditionCov", "indefCovMat"), debug.logging = FALSE))
 
+suppressWarnings(bbob_custom_parallel(optimizerGA, "GA", "GA_default2", 
+                                      maxit = NULL, stopFitness = 1e-08, maxFE = 100000,
+                                      function_ids = 1:24, instances = 1:15, dimensions = c(2,5,10,20)))
 
-
-
-
+suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "GA", 
+                                      data_directory = "GA_OCD2", 
+                                      dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
+                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
+                                      OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
+                                      dispersion = FALSE,  evolutionPath = FALSE, restart_multiplier = 2, 
+                                      restart_triggers = "OCD"))
 
 
 
