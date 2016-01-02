@@ -252,7 +252,7 @@ readOutput = function(file) {
 #' @references
 #' TODO
 #' @param allResults
-#' The user has to pass a number of result objects produced by applying \code{\link{readOutput}} 
+#' The user has to pass a number of result objects produced by applying \code{\link{readOutput}}.
 #' @return \code{aggregateResults} returns a list that contains the following components aggregated over all passed single bbob results
 #' (see \code{\link{readOutput}} for information on the non aggregated single bbob results):
 #'   \item{aggregatedAllBest}{vector of all best fitness values.}
@@ -389,8 +389,20 @@ aggregateResults = function(allResults) {
   return(result)
 }
 
-#returns a cumulative distribution function of the functions that were solved within the desired fitnessGap
-#by the number of function evaluations this took
+#' @title exmpirical cumulative distribution function
+#' @description 
+#' \code{extractECDFofFunctions} returns a cumulative distribution function of 
+#' the functions that were solved within the desired fitness gap by the number of function evaluations this took
+#' @details 
+#' \code{extractECDFofFunctions} can be used to observe which fraction of functions has been solved within the desired fitness gap
+#' passed to the function. For example, a bbob experiment could terminate an optimization run after 100000 function evaluations.
+#' If the specified fitness gap is not reached after this number of function evaluations, the corresponding function remains unsolved
+#' with respect to that specific gap. The return object of this function can be plotted directly.
+#' @references
+#' TODO
+#' @param results
+#' \code{results} must be a return object of \code{\link{aggregatedResults} i.e. the aggregated results of several function optimizations.
+#' @export
 extractECDFofFunctions = function(results, fitnessGap = 1e-08) {
   allConvergence = results$aggregatedAllConvergence[,-1]
   thresholds = integer(0)
