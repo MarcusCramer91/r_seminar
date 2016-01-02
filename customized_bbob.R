@@ -97,7 +97,7 @@ source("rbga.R")
 #' @param evolutionPath [\code{logical}]\cr
 #'   \code{evolutionPath}: OCD Parameter (See \code{\link{stopOnOCD}})
 #' @return bbob_custom does not return anything but writes the results of the experiment to log files, to be
-#' processed with \code{\link{output_interpreter}}
+#' processed with \code{\link{readOutput}}
 #' @examples
 #' @rdname bbo-benchmarking
 #' @import BBmisc
