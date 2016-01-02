@@ -92,6 +92,8 @@ which(CMAES_only_default_aggResult$aggregatedAllStagnation ==
 #file number 28
 file = "./CMAES_only_default/CMAES_output_7_20.txt"
 worstStagnation = readOutput(file)
+
+#get instance with worst stagnation behavior
 worstStagnationIndex = which(worstStagnation$allStagnations == max(worstStagnation$allStagnations)) + 1
 feMultiplier = worstStagnation$allRunsEval[worstStagnationIndex] / 
   worstStagnation$allRuns[worstStagnationIndex]
@@ -103,7 +105,7 @@ par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
 plot(worstStagnationData[,1], 
      log(worstStagnationData[,2]+1),type = "l", lwd = 4, cex = 5, cex.lab = 4, cex.axis = 4,
-     xlab = "Function evaluations", ylab = "log(average best value + 1)")
+     xlab = "Function evaluations", ylab = "log(best value + 1)")
 
 #draw red lines where stagnation takes place
 lines(worstStagnationData[worstStagnationData[,2] == min(worstStagnationData[,2]),1], 
@@ -208,7 +210,7 @@ par(mgp = c(6,2,0))
 plot(restart_test2$avgConvergence[,1], 
      log(restart_test2$avgConvergence[,2]+1), type = "l", 
      xlim = c(0, (restart_test4$longestRunEval * 5)), ylim = c(0,30), xlab = "Function evaluations",
-     ylab = "log(average best value + 1)", cex = 5, lwd = 4, cex.lab = 4, cex.axis = 4)
+     ylab = "log(best value + 1)", cex = 5, lwd = 4, cex.lab = 4, cex.axis = 4)
 lines(restart_test4$avgConvergence[,1] + 50000, 
       log(restart_test4$avgConvergence[,2]+1), lwd = 4)
 lines(restart_test1$avgConvergence[,1] + 100000, 
@@ -229,7 +231,7 @@ par(mgp = c(6,2,0))
 plot(restart_test2$avgConvergence[,1], 
      log(restart_test2$avgConvergence[,2]+1), type = "l", 
      xlim = c(0, (restart_test4$longestRunEval * 5)), ylim = c(0,30), xlab = "Function evaluations",
-     ylab = "log(average best value + 1)", cex = 5, lwd = 4, cex.lab = 4, cex.axis = 4)
+     ylab = "log(best value + 1)", cex = 5, lwd = 4, cex.lab = 4, cex.axis = 4)
 lines(restart_test4$avgConvergence[,1] + 50000, 
       log(restart_test4$avgConvergence[,2]+1), lwd = 4)
 lines(restart_test1$avgConvergence[,1] + 100000, 
@@ -1162,5 +1164,5 @@ points(GA_Default2$aggregatedAvgConvergence[GA_Default2$aggregatedAvgConvergence
 
 
 legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
-       col = c("cyan", "black", "green", "blue", "redd"), lty = 1, lwd = 4, cex = 4)
+       col = c("cyan", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
 dev.off()

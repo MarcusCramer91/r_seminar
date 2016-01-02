@@ -344,7 +344,8 @@ optimizerCMAESWithoutDef = function(dimension, instance, function_id, maxit, max
 #' @rdname bbo_benchmarking_optimizers
 optimizerRS = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, OCD = FALSE,
                        debug.logging = FALSE, max_restarts = 0, 
-                       restart_multiplier = 1, restart_triggers = character(0)) {
+                       restart_multiplier = 1, restart_triggers = character(0), ...) {
+  source("random_search.R")
   fun = makeBBOBFunction(dimension = dimension, fid = function_id, iid = instance)
   result = random_search(fun, maxFE)
   return(result)

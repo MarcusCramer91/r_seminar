@@ -1,9 +1,0 @@
-conditionCov,Condition number of covariance matrix exceeds 100000000000000.000000,function (envir = parent.frame()) 
-{
-    tryCatch({
-        return(kappa(envir$C) > tol)
-    }, error = function(e) {
-        print(collapse(C))
-    }, finally = {
-    })
-},conditionCov,list()
