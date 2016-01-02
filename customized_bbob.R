@@ -1,3 +1,4 @@
+### DELETE THIS SECTION WHEN PACKAGE IS CREATED ###
 #if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
 if (!"snow" %in% rownames(installed.packages())) install.packages("snow")
 if (!"parallel" %in% rownames(installed.packages())) install.packages("parallel")
@@ -12,7 +13,95 @@ require(parallel)
 require(smoof)
 source("./cmaes/cmaes.R")
 source("rbga.R")
+### END ###
 
+#' @name bbob_benchmarking
+#' @title customized bbo-benchmarking
+#' @aliases bbob_custom_parallel
+#' @aliases bbob_custom
+#' @description
+#' provides an interface for benchmarking optimization algorithms over all 24 noiseless bbob functions.
+#' Use either bbob_custom or bbob_custom_parallel for parallel execution.
+#'
+#' @details
+#' bbob_custom provides a benchmarking function as a highlevel interface for running experiments
+#' for an optimizer over all 24 noiseless functions of the bbob testset. bbob_custom_parallel does the same in an 
+#' parallel manner in order to save execution time. The input parameters need to be specified as defined
+#' above. Once the execution of an experiment has finished, bbob_custom created a folder according to the datapath specified and  
+#' writes the results in a number of log files to this folder. The folder's name includes a time stamp as well as the specified
+#' data directory (e.g. 2015-12-31_CMAES_default_stopping_conditions). The caption of the log files in that folder is a sequence of the defined
+#' \code{algorithm.id, function_ids} and \code{dimensions} (e.g. CMAES_output_1_2.txt).
+#' @references
+#' TODO
+#' @keywords optimize
+#' @param optimizer [\code{function}]\cr
+#'   The first argument passed to customized_bbob is an optimization wrapper, i.e. the particular optimizer under test. 
+#'   The optimizer has to adhere to the following function signature:
+#'   \code{function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, debug.logging, max_restarts, 
+#'   restart_multiplier, restart_triggers, OCD, varLimit, nPreGen, maxGen, fitnessValue, dispersion, evolutionPath)}.
+#'   However, the user does not need to specify every argument in an optimizer but it must be able to
+#'   deal with functions of the type \code{smoof_function}, that gets \code{dimension, instance, function_id} as 
+#'   input parameters.
+#' @param algorithm.id [\code{string}]\cr
+#'   The \code{algorithm.id} is a short descriptive name for the optimization algorithm under test.
+#'   The \code{algorithm.id} will be part of the caption of the output log files. See detail section.
+#' @param data_directory [\code{string}]\cr
+#'   The \code{data_directory} specifies the location of the output log files. See detail section for more information.
+#' @param dimensions [\code{integer}]\cr
+#'   The \code{dimensions} parameter determines the dimensions to be passed to the optimizer under test. Possible values are between
+#'   2 and 40.
+#'   Default is \code{c(2, 3, 5, 10, 20, 40)}.
+#' @param instances [\code{integer}]\cr
+#'   Every \code{smoof_function} can be instantiated in different ways. Could be either a single intergerish value 
+#'   greater of equals 1 or a vector with such values. Default is \code{c(1:15)}
+#' @param function_ids [\code{integer(1)}]\cr
+#'   The \code{function_ids} are the unique identifier of the 24 noiseless bbob function. 
+#'   Default is \code{c(1:24)}.
+#' @param maxit [\code{integer}]\cr
+#'   If \code{maxFE} is not passed, the number of iterations, \code{maxit}, serves as an upper execution limit for optimizing one function.
+#'   Default is \code{NULL}.
+#' @param stopFitness [\code{numeric}]\cr
+#'   If \code{stopFitness} is specified, the optimization is terminated if the gap between the current function
+#'   value and the global optimum of the function is below the value of \code{stopFitness}. 
+#'   Default is \code{NULL}.
+#' @param maxFE [\code{interger}]\cr
+#'   \code{maxFE} is another upper execution limit for a function optimization. The limit \code{maxFE} is favored over
+#'   maxit/stopfitness, if both are not \code{NULL}.
+#'   Default is \code{NULL}.
+#' @param debug.logging [\code{logical}]\cr
+#'   \code{debug.logging} ...
+#'   Default is \code{FALSE}.
+#' @param max.restarts [\code{integer}]\cr
+#'   If \code{max.restarts} the optimizer restarts the optimization if one of the passed \code{restart_triggers} has fired.
+#'   In order to use this feature, the optimizer under test must be able to restart the optimization.
+#'   Default is \code{FALSE}.
+#' @param restart.triggers [\code{string}]\cr
+#'   If \code{restart.triggers} are passed, the optimizer restarts the optimization if one of those triggers has fired.
+#'   In order to use this feature, the optimizer under test must be able to restart the optimization.
+#'   Default is \code{FALSE}.
+#' @param OCD [\code{logical}]\cr
+#'   \code{OCD} indicates if Online Convergence Detection (OCD) should be used as a stopping condition of the
+#'   optimizer under test. OCD can only be activated if the optimizer has implemented the functionality necessary for OCD.
+#'   See \code{\link{stopOnOCD}} for further necessary parameters.
+#'   Default is \code{FALSE}.
+#' @param varLimit [\code{logical}]\cr
+#'   \code{varLimit}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param nPreGen [\code{logical}]\cr
+#'   \code{nPreGen}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param maxGen [\code{logical}]\cr
+#'   \code{maxGen}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param fitnessValue [\code{logical}]\cr
+#'   \code{fitnessValue}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param dispersion [\code{logical}]\cr
+#'   \code{disperion}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param evolutionPath [\code{logical}]\cr
+#'   \code{evolutionPath}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @return bbob_custom does not return anything but writes the results of the experiment to log files, to be
+#' processed with \code{\link{output_interpreter}}
+#' @examples
+#' @rdname bbo-benchmarking
+#' @import BBmisc
+#' @export
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
                        instances = c(1:5, 41:50), function_ids = NULL, maxit = NULL, stopFitness = NULL, 
@@ -58,6 +147,65 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
   }
 }
 
+#' @name bbo_benchmarking_optimizers
+#' @title optimizer for bbo_benchmarking
+#' @aliases optimizerCMAES
+#' @aliases optimizerCMAESWithoutDef
+#' @aliases optimizerRS
+#' @aliases optimizerGA
+#' @param dimensions [\code{integer}]\cr
+#'   The \code{dimensions} parameter determines the dimensions to be passed to the optimizer under test. Possible values are between
+#'   2 and 40.
+#' @param instances [\code{integer}]\cr
+#'   Every \code{smoof_function} can be instantiated in different ways. Could be a single intergerish value 
+#'   greater of equals 1.
+#' @param function_ids [\code{integer(1)}]\cr
+#'   The \code{function_ids} are the unique identifier of the 24 noiseless bbob function. 
+#' @param maxit [\code{integer}]\cr
+#'   If \code{maxFE} is not passed, the number of iterations, \code{maxit}, serves as an upper execution limit for optimizing one function.
+#' @param stopFitness [\code{numeric}]\cr
+#'   If \code{stopFitness} is specified, the optimization is terminated if the gap between the current function
+#'   value and the global optimum of the function is below the value of \code{stopFitness}. 
+#' @param maxFE [\code{interger}]\cr
+#'   \code{maxFE} is another upper execution limit for an optimizer, i.e. if the specified number of function evaluations is reached,
+#'   the optimizer terminates the optimization.
+#' @param debug.logging [\code{logical}]\cr
+#'   \code{debug.logging} ...
+#'   Default is \code{FALSE}.
+#' @param max.restarts [\code{integer}]\cr
+#'   If \code{max.restarts} the optimizer restarts the optimization if one of the passed \code{restart_triggers} has fired.
+#'   In order to use this feature, the optimizer under test must be able to restart the optimization.
+#'   Default is \code{FALSE}.
+#' @param restart.triggers [\code{string}]\cr
+#'   If \code{restart.triggers} are passed, the optimizer restarts the optimization if one of those triggers has fired.
+#'   In order to use this feature, the optimizer under test must be able to restart the optimization.
+#'   Default is \code{FALSE}.
+#' @param OCD [\code{logical}]\cr
+#'   \code{OCD} indicates if Online Convergence Detection (OCD) should be used as a stopping condition of the
+#'   optimizer under test. OCD can only be activated if the optimizer has implemented the functionality necessary for OCD.
+#'   See \code{\link{stopOnOCD}} for further necessary parameters.
+#'   Default is \code{FALSE}.
+#' @param varLimit [\code{logical}]\cr
+#'   \code{varLimit}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param nPreGen [\code{logical}]\cr
+#'   \code{nPreGen}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param maxGen [\code{logical}]\cr
+#'   \code{maxGen}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param fitnessValue [\code{logical}]\cr
+#'   \code{fitnessValue}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param dispersion [\code{logical}]\cr
+#'   \code{disperion}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param evolutionPath [\code{logical}]\cr
+#'   \code{evolutionPath}: OCD Parameter (See \code{\link{stopOnOCD}})
+#' @param path [\code{string}]\cr
+#'  Do we really need a path here???
+#' @description
+#' Optimizers ready for usage in bbob_custom or bbob_custom parallel
+#' @details
+#' The optimizers are ready to be set up in a benchmarking experiment with \code{\link{bbob_custom}} or
+#' \code{\link{bbob_custom_parallel}}. Every input parameter is required as it passed by
+#' \code{\link{bbob_custom}} or \code{\link{bbob_custom_parallel}} to the particular optimizer.
+#' @export
 optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, 
                           debug.logging = FALSE, max_restarts, restart_multiplier, restart_triggers, OCD = FALSE,
                           varLimit = NULL, nPreGen = NULL, maxGen = NULL, fitnessValue= FALSE, dispersion = FALSE,
@@ -125,6 +273,7 @@ optimizerCMAES = function(dimension, instance, function_id, maxit, maxFE, stopFi
   return(result)
 }
 
+#' @rdname bbo_benchmarking_optimizers
 #reduced optimizer that does not apply default stopping conditions
 #purely for showcasing purposes for the presentation, should never be used in practise
 optimizerCMAESWithoutDef = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, 
@@ -192,6 +341,7 @@ optimizerCMAESWithoutDef = function(dimension, instance, function_id, maxit, max
   return(result)
 }
 
+#' @rdname bbo_benchmarking_optimizers
 optimizerRS = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, OCD = FALSE,
                        debug.logging = FALSE, max_restarts = 0, 
                        restart_multiplier = 1, restart_triggers = character(0)) {
@@ -200,7 +350,7 @@ optimizerRS = function(dimension, instance, function_id, maxit, maxFE, stopFitne
   return(result)
 }
 
-
+#' @rdname bbo_benchmarking_optimizers
 optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, 
                        debug.logging = FALSE, max_restarts, restart_multiplier, restart_triggers, OCD = FALSE,
                        varLimit = NULL, nPreGen = NULL, maxGen = NULL, fitnessValue= FALSE, dispersion = FALSE,
@@ -267,7 +417,11 @@ optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitne
   return(result)
 }
 
-
+#' @rdname bbo-benchmarking
+#' @importFrom snow makeCluster clusterCall clusterExport clusterApply stopCluster
+#' @importFrom parallel detectCores
+#' @import smoof
+#' @export
 #wrapper function for bbob_custom that parallelizes it
 #disables the progressbar so check the output files to see how far the algorithm has gottenhh
 bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
@@ -276,14 +430,14 @@ bbob_custom_parallel = function(optimizer, algorithm_id, data_directory, dimensi
                                 restart_multiplier = 1, restart_triggers = character(0), OCD = FALSE, varLimit = NULL,
                                 nPreGen = NULL, maxGen = NULL, fitnessValue = FALSE, dispersion = FALSE, evolutionPath = FALSE) {
   nCores = detectCores()
-  cluster = snow:::makeCluster(nCores, type = "SOCK")
+  cluster = makeCluster(nCores, type = "SOCK")
   #export relevant libraries + functions to the clusters
-  snow:::clusterCall(cluster, function() require(cmaesr))
-  snow:::clusterCall(cluster, function() require(bbob))
+  clusterCall(cluster, function() require(cmaesr))
+  clusterCall(cluster, function() require(bbob))
   #export all environment functions
   ex = Filter(function(x) is.function(get(x, .GlobalEnv)), ls(.GlobalEnv))
-  snow:::clusterExport(cluster, ex)
-  snow:::clusterApply(cl = cluster, x = function_ids, fun = function(x) bbob_custom(optimizer = optimizer, 
+  clusterExport(cluster, ex)
+  clusterApply(cl = cluster, x = function_ids, fun = function(x) bbob_custom(optimizer = optimizer, 
                                                                   algorithm_id = algorithm_id, 
                                                                   data_directory = data_directory, 
                                                                   dimensions = dimensions,
