@@ -414,7 +414,7 @@ optimizerGA = function(dimension, instance, function_id, maxit, maxFE, stopFitne
     }
   }
   #use default if no stopping criterion is defined
-  else stop("Halt deine Fresse und gib mindestens eine stopping Condition ein")
+  else stop("Enter at least one stopping condition!")
   return(result)
 }
 
