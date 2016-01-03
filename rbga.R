@@ -1,22 +1,27 @@
-source("./cmaes/helpers.R")
-source("./cmaes/makeMonitor.R")
-source("./cmaes/makeStoppingCondition.R")
-source("./cmaes/stoppingConditions.R")
 
+#' @ export
 rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL, 
           popSize = 200, iters = 100, mutationChance = NA, elitism = NA, 
           monitorFunc = NULL, evalFunc = NULL, showSettings = FALSE, 
+          # in order to be compatible with makeStoppingConditions and stopOnOCD, 
+          # the argument "control" is added. It is a list of stopping conditions (stopOnOCD can be passed to it)
           verbose = FALSE, instance, control = list()) 
 {
   
-  #=================================================================================
+  #========================================added section==========================================
+  # this code section is copied from the implementation of cma-es by Jakob Bossek: 
+  # Every necessary parameter of the control argument is extracted from it for further processing
+  # get all stopping conditions passed to rbga by the argument "control" and store those in stop.ons
   stop.ons = getRBGAParameter(control, "stop.ons", NULL)
+  # get all restart triggers passed to rbga by the argument "control" and store those in restart.triggers
   restart.triggers = getRBGAParameter(control, "restart.triggers", character(0L))
+  # get names of passed stopping conditions
   stop.ons.names = sapply(stop.ons, function(stop.on) stop.on$code)
-  # check restart multiplier!!!!!! especially "default = 2"
+  # get passed restart multiplier. Default is "2"
   restart.multiplier = getRBGAParameter(control, "restart.multiplier", 2)
+  # get passed number of max.restarts
   max.restarts = getRBGAParameter(control, "max.restarts", 0L)
-  #=================================================================================
+  #========================================added section=========================================
   
   if (is.null(evalFunc)) {
     stop("A evaluation function must be provided. See the evalFunc parameter.")
@@ -66,6 +71,7 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
     bestValue = Inf
     
     #========================================added section=========================================
+    # A restart loop is added in order to allow application of rbga with bbob_custom and make the results compareable to those of cmaes experiments
     # initialize list "generation.bestfitness" that stores the best fitness value of each iteration
     generation.bestfitness = list()
     # set initial wors.fitness to Inf
@@ -125,7 +131,7 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
     for (iter in 1:iters) {
       
       #========================================added section=========================================
-      # increase restartIter with each iteration of rbga
+      # increase restartIter with each iteration of rbga (required for OCD)
       restartIter = restartIter + 1
       # if a restart has been triggered break the inner loop 
       # and increase the population size according to the restart multiplier (as specified above)
@@ -263,7 +269,6 @@ rbga = function (stringMin = c(), stringMax = c(), suggestions = NULL,
         # initialize list "dispersion" to be used as a performance indicator
         # so far, dispersion is not enabled as a performance indicator of rbga, but could be integrated.
         #dispersion[[iter]] = sum(abs(m-arx.repaired))
-      
         # populate list with performance indicators for OCD.
         # if necessary, normalize the performance indicator of interest. 
         # For example, fitnessValue is normalized in the range upper.bound - lower.bound, 
