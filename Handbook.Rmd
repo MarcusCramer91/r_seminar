@@ -89,7 +89,7 @@ allresult = loadAllResults(usedFunctions, usedDimensions, path, algorithmName)
 allresult = loadAllResultsParallel(usedFunctions, usedDimensions, path, algorithmName)
 ```
 
-All log files produced by the set up experiments were loaded in a similar procedure.
+All log files produced by the conducted experiments were loaded in a similar procedure.
 After loading all desired log files the user could use the function aggregateResults. This function takes a number of result objects and aggregates those results. For example the user might eecute something like the following:
 
 ```{r,warning=FALSE,message=FALSE, eval=FALSE}
