@@ -1,18 +1,18 @@
 ### DELETE THIS SECTION WHEN PACKAGE IS CREATED ###
 #if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
-if (!"snow" %in% rownames(installed.packages())) install.packages("snow")
-if (!"parallel" %in% rownames(installed.packages())) install.packages("parallel")
-if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
-if (!"BBmisc" %in% rownames(installed.packages())) install.packages("BBmisc")
+#if (!"snow" %in% rownames(installed.packages())) install.packages("snow")
+#if (!"parallel" %in% rownames(installed.packages())) install.packages("parallel")
+#if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
+#if (!"BBmisc" %in% rownames(installed.packages())) install.packages("BBmisc")
 #require(devtools)
 #install_github(repo = "MarcusCramer91/cmaesr")
 #require(cmaesr)
-require(BBmisc)
-require(snow)
-require(parallel)
-require(smoof)
-source("./cmaes/cmaes.R")
-source("rbga.R")
+#require(BBmisc)
+#require(snow)
+#require(parallel)
+#require(smoof)
+#source("./cmaes/cmaes.R")
+#source("rbga.R")
 ### END ###
 
 #' @name bbob_benchmarking
