@@ -647,7 +647,7 @@ averageConvergence = function(allConvergence, includedFunctions, includedDimensi
   avgConvergence = cbind(allConvergence[,1], avgConvergence)
 }
 
-#' @title Check Completeness of Logs
+#' @export
 #checks whether all required logs for the R file output_analysis.R exist
 checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15) {
   pbar = makeProgressBar(min = 1, max = length(requiredDirs))
@@ -719,7 +719,7 @@ checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 1
   return(checkSuccessful)
 }
 
-#' @title Generate Graphs
+#' @export
 generateGraphs = function() {
   source("output_analysis.R")
 }
