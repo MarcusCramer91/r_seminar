@@ -1,0 +1,120 @@
+---
+title: "Project 2: Investigation of CMA-ES stagnation behaviour"
+author: "Marcus Cramer, Andreas Hermann"
+date: "Sunday,  January 03, 2016"
+output: html_document
+---
+
+Topic:
+The Covariance Matrix Adaption - Evolution Strategy (CMA-ES) is a State-Of-The Art algorithm in single-objective black-box optimization.
+The interal stopping criterion has been fixed on sophisticated tuning and intuition. The goal of this project is a comparison of the internal stopping
+criterion to Online Convergence Detection (OCD). Originally, OCD has been designed for multiobjective optimization. Apparently, the first step is to make
+OCD suitable to be used as a stopping criterion within CMA-ES. For this project the CMA-ES implementation of Jakob Bossek has been used. Afterwards, CMA-ES with both stopping conditions has been applied to the 24 noiseless functions of the Black-Box Optimization Benchmarking (BBOB) testsest. The results of these experiments built the basis for a systematic comparison of OCD and the internal stopping criterion of CMA-ES. Additionally, the performance of CMA-ES under OCD has been compared to the Genetic Algorithm (GA) with OCD activated.
+
+This document gives the reader a short intro through the delopment process of the project and serves as a tutorial
+for executing the R-code necessary for generating results.
+
+## Package installation
+For installing and loading the required package that contains every necessary .R file, execute the following:
+```{r,warning=FALSE,message=FALSE}
+devtools::install_github("andreas-he/cmaesbenchmarking")
+library(cmaesbenchmarking)
+```
+
+If everything worked fine, you should have installed the package "cmaesbenchmarking" and all further required packages for executing functions of cmaesbenchmarking.
+For detailed information about the included function, please confer the corresponding help pages of the package:
+
+### Help pages of cmaesbenchmarking
+```{r,warning=FALSE,message=FALSE}
+?bbo_benchmarking
+?bbo_benchmarking_optimizers
+?readOutput
+?aggregateResults
+?load_results
+?allresults_processing
+?getActiveFunctions
+?extractECDFofFunctions
+?averageConvergence
+?stopOnOCD
+```
+
+## Delopmentment process of project 2
+### Step 1: Adapting CMA-ES and implementing OCD
+The first step was concerned with the implementation of OCD for CMA-ES. There are three performance indicator used for detecting convergence of CMA-ES:
+
+* fitness value of individuals
+* dispersion of the population
+* step-size (evolution path) between the iterations
+
+For detailed information about the necessary code adaptions of the CMA-ES source code and the implementation of OCD, please confer the following .R files:
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+stopOnOCD.R
+cmaes_custom.R
+```
+
+### Step 2: Running BBOB experiments
+In order to run experiments for all 24 noiseless BBOB functions, a benchmarking function for the corresponding purpose was implemented. The details of these function are described on their help pages. 
+
+```{r,warning=FALSE,message=FALSE}
+?bbob_custom
+?bbob_custom_parallel
+?bbo_benchmarking
+```
+  
+  
+To start an experiment one has to implement an optimizer that is suitable to be passed as an argument to either bbob_custom or bbob_custom_parallel. There are already four optimizers ready for running an experiment. The user might use the CMAES optimizer. The code belows one examplary experiment setup which can be executed (caution: may take several hours). In this experiment, OCD with the performance indicator fitnessValue is used as a stopping criterion. The upper execution limit is fixed by 100000 function evaluations. Additionally, the algorithm might restart with OCD as a trigger if the upper limit is not reached yet. The experiment is performed over all 24 noiseless BBOB functions and 15 function instances each. The problem dimensions for each function are set to c(2, 5, 10, 20). The results of this experiment are written into log files of the directory specified by the field data_directoy.
+
+
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+suppressWarnings(bbob_custom_parallel(optimizer = cmaesbenchmarking::optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "OCD_RUN_0.0001_100", dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, dispersion = FALSE, evolutionPath = FALSE, restart_multiplier = 2, restart_triggers = "OCD"))
+```
+
+In order to compare the internal stopping criterion of CMA-ES with OCD, experiments for the internal criterion and OCD were set up and executed (see experiment_setup.R for details of the setups). Also, in order to prove the reliability of the results, OCD was implemented and tested for the Genetic Algorithm (GA) and afterwards compared to the performance of CMA-ES.
+For detailed information about the necessary adaptions of the source code of the GA, please confer the following .R files:
+
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+rbga.R
+```
+
+### Step 3: Reading and Interpreting results of an BBOB experiment
+
+For loading/reading the output of an experiment stored in corresponding log files the user could make use of the following functions (Confer the corresponding help pages for detailed information on the necessary parameters and return objects):
+
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+# for a single log file
+result = readOutput(file)
+# for a number of log files
+allresult = loadAllResults(usedFunctions, usedDimensions, path, algorithmName)
+# parallel version for a number of log files
+allresult = loadAllResultsParallel(usedFunctions, usedDimensions, path, algorithmName)
+```
+
+All log files produced by the conducted experiments were loaded in a similar procedure.
+After loading all desired log files the user could use the function aggregateResults. This function takes a number of result objects and aggregates those results. For example the user might eecute something like the following:
+
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+# first variant
+result1 = readOutput(file1)
+result2 = readOutput(file2)
+result1_result2_aggregated = aggregateResults(list(result1,result2))
+# second variant
+allresult_aggregated = loadAllResults(usedFunctions, usedDimensions, path, algorithmName)
+aggregateResults(allresults)
+```
+
+These function have been used for aggregating the results of the experiments conducted.
+Further interpretation of the results has been performed by the following functions (confer corresponding help pages for detailed information on those functions):
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+?getAvgBestPerDimension
+?getAvgBestPerFunction
+?getAvgBestPerFunctionAndDimension
+?getAggregatedConvergenceFunctions
+?getActiveFunctions
+?extractECDFofFunctions
+?averageConvergence
+```
+
+Finally, all results were ready for being analysed in a graphical manner.
+
+### Step 4: Analysing results of an BBOB experiments
+TODO

@@ -3,7 +3,7 @@ library(devtools)
 library(roxygen2)
 package.skeleton(name = "cmaesbenchmarking", code_files = c("customized_bbob.R", "output_interpreter.R", "./cmaes/cmaes.R",
                                                             "./cmaes/helpers.R", "./cmaes/makeMonitor.R","./cmaes/makeStoppingCondition.R",
-                                                            "./cmaes/stoppingConditions.R"))
+                                                            "./cmaes/stoppingConditions.R", "rbga.R"))
 unlink(c("./cmaesbenchmarking/man/bbob_custom.Rd", "./cmaesbenchmarking/man/bbob_custom_parallel.Rd",
          "./cmaesbenchmarking/man/optimizerCMAESWithoutDef.Rd", "./cmaesbenchmarking/man/optimizerRS.Rd",
          "./cmaesbenchmarking/man/optimizerCMAES.Rd", "./cmaesbenchmarking/man/optimizerGA.Rd", 
