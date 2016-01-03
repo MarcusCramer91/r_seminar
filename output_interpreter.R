@@ -512,14 +512,16 @@ loadAllResultsParallel = function(usedFunctions, usedDimensions, path, algorithm
 #' (i.e. a return object of \code{\link{aggregateResults}).
 #' @details
 #' The functions as defined above serve the following purposes:
-#'   \item{getAggregatedConvergenceFunctions}{A function that averages the convergence 
+#' \describe{
+#'   \item{\code{getAggregatedConvergenceFunctions}}{A function that averages the convergence 
 #'   for each optimized function over all dimensions specified.}
-#'   \item{getAvgBestPerFunctionAndDimension}{A function that averages the best results
+#'   \item{\code{getAvgBestPerFunctionAndDimension}}{A function that averages the best results
 #'   for each function and all dimensions specified.}
-#'   \item{getAvgBestPerFunction}{A function that averages the best results
+#'   \item{\code{getAvgBestPerFunction}}{A function that averages the best results
 #'   for each function over all dimensions specified.}
-#'   \item{getAvgBestPerDimension}{A function that averages the best results
+#'   \item{\code{getAvgBestPerDimension}}{A function that averages the best results
 #'   for each dimension over all functions specified.}
+#'   }
 #' @param results
 #' \code{results} must be a return object of \code{\link{aggregatedResults}, i.e. the aggregated results of several function optimizations.
 #' @param nFunctions
@@ -527,8 +529,7 @@ loadAllResultsParallel = function(usedFunctions, usedDimensions, path, algorithm
 #' @param nDimensions
 #' the number of dimensions for which data exists and results should be computed (nDimensions is the total number of logged dimensions,
 #' i.e. \code{nDimensions} has to be a counting value, not the actual dimensionality)
-#' @return 
-#' The return objects are function specific and as follows:
+#' @return The return objects are function specific and as follows:
 #'   \item{aggregatedConvergenceFunctions}{A matrix of the fitness gaps for each function averaged over all dimensions.}
 #'   \item{getAvgBestPerFunctionAndDimension}{A vector that stores the average best value (mean over all instances)
 #'   for each function and each dimension of that function.}

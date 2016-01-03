@@ -99,8 +99,15 @@
 #' @return bbob_custom does not return anything but writes the results of the experiment to log files, to be
 #' processed with \code{\link{readOutput}}
 #' @examples
+#' suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
+#' data_directory = "CMAES_OCD_no_restarts", 
+#' dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
+#' stopFitness = 1e-08, maxFE = 100000, max_restarts = 0, 
+#' OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, 
+#' dispersion = FALSE,  evolutionPath = FALSE, restart_multiplier = 2, 
+#' restart_triggers = "OCD"))
 #' @rdname bbo-benchmarking
-#' @import BBmisc
+#' @importFrom BBmisc makeProgressBar
 #' @export
 #only non-noisy functions
 bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2, 3, 5, 10, 20, 40), 
