@@ -462,7 +462,6 @@ averageConvergence = function(allConvergence, includedFunctions, includedDimensi
 
 #checks whether all required logs for the R file output_analysis.R exist
 checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15) {
-  pbar = makeProgressBar(min = 1, max = length(requiredDirs))
   checkSuccessful = TRUE
   #get all directories in current working directory
   allDirs = dir()[file.info(dir())$isdir]
@@ -474,7 +473,8 @@ checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 1
                    "OCD_parametrization/OCD_RUN_0.001_100", "OCD_parametrization/OCD_RUN_0.001_1000", 
                    "OCD_parametrization/OCD_RUN_0.0001_10", "OCD_parametrization/OCD_RUN_0.0001_100", 
                    "OCD_parametrization/OCD_RUN_0.0001_1000", "CMAES_default_with_restart2", 
-                   "2016-01-01_GA_default2", "OCD_evo_disp2", "GA_OCD2")
+                   "GA_default2", "OCD_evo_disp2", "GA_OCD2")
+  pbar = makeProgressBar(min = 1, max = length(requiredDirs))
   for (i in 1:length(requiredDirs)) {
     if (length(grep(requiredDirs[i], allDirs)) == 0) {
       print(paste("Required directory", requiredDirs[i], "is missing."))

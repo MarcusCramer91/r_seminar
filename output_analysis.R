@@ -113,8 +113,6 @@ lines(worstStagnationData[worstStagnationData[,2] == min(worstStagnationData[,2]
 
 dev.off()
 
-#plot runtime
-boxplot(x = CMAES_only_default_aggResult$aggregatedAllRunsEval)
 
 #plot stagnation time
 #multiply by eval/iter ratio
@@ -123,7 +121,7 @@ par(mar=c(9,9,5,2))
 par(mgp = c(6,2,0))
 boxplot(CMAES_only_default_aggResult$aggregatedAllStagnation 
         * (CMAES_only_default_aggResult$aggregatedAllRunsEval / CMAES_only_default_aggResult$aggregatedAllRuns),
-        ylab = "Stagnation length", cex.lab = 4, cex = 5, cex.axis = 4)
+        ylab = "Stagnation length", cex.lab = 4, cex = 5, cex.axis = 4, pch = 16)
 dev.off()
 
 
@@ -606,14 +604,14 @@ points(CMAES_OCD7_agg$aggregatedAvgConvergence[CMAES_OCD7_agg$aggregatedAvgConve
 
 points(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,1],
        log(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
-       type = "l", col = "cyan", lwd = 4)
+       type = "l", col = "orange", lwd = 4)
 
 points(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,1],
        log(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
        type = "l", col = "black", lwd = 4)
 
 legend("topright", legend = c("Other OCD", "Default CMA-ES", "0.0001; 100"), 
-       col = c("black", "red", "cyan"), lty = 1, lwd = 4, cex = 4)
+       col = c("black", "red", "orange"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
 #plot above plots WITHOUT default
@@ -682,14 +680,14 @@ points(CMAES_OCD7_agg$aggregatedAvgConvergence[CMAES_OCD7_agg$aggregatedAvgConve
 
 points(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,1],
        log(CMAES_OCD8_agg$aggregatedAvgConvergence[CMAES_OCD8_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
-       type = "l", col = "cyan", lwd = 4)
+       type = "l", col = "orange", lwd = 4)
 
 points(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,1],
        log(CMAES_OCD9_agg$aggregatedAvgConvergence[CMAES_OCD9_agg$aggregatedAvgConvergence[,1] < 100000,2]+1), 
        type = "l", col = "red", lwd = 4)
 
 legend("topright", legend = c("Other OCD", "0.0001; 1000", "0.0001; 100"), 
-       col = c("black", "red", "cyan"), lty = 1, lwd = 4, cex = 4)
+       col = c("black", "red", "orange"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
 ##############
@@ -837,7 +835,6 @@ if(!exists("CMAES_OCD_evo_disp_agg")) {
   
 }
 CMAES_OCD = CMAES_OCD_evo_disp_agg
-
 if(!exists("CMAES_default_restart_results_agg")) {
   CMAES_default_restart_results = 
     loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./CMAES_default_with_restart",
@@ -857,7 +854,7 @@ GA_OCD = aggregateResults(GA_OCD)
 if(!exists("GA_results_agg")) {
   GA_results_agg = loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./GA_default",
                                           algorithmName = "GA")
-  GA_results_agg = aggregateResults(GA_Default)
+  GA_results_agg = aggregateResults(GA_results_agg)
 }
 GA_Default = GA_results_agg
 
@@ -880,6 +877,10 @@ upper = range(c(log(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgCo
 #add margin for the legend
 upper = upper + upper/4
 
+#undo automatic determination of boundaries (for more consistent pngs for the presentation)
+lower = 5
+upper = 20
+
 #plot the convergence
 png("convergence_OCD_vs_Default.png", height = 1200, width = 1200)
 par(mar=c(9,9,2,2))
@@ -887,7 +888,7 @@ par(mgp = c(6,2,0))
 plot(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,1],
      log(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
      type = "l", ylim = c(lower, upper),
-     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "cyan")
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "orange")
 
 #due to large population sizes, 100k FEs can be surpassed
 #limit plot to 100k FEs
@@ -909,7 +910,45 @@ points(GA_Default$aggregatedAvgConvergence[GA_Default$aggregatedAvgConvergence[,
 
 
 legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
-       col = c("cyan", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+       col = c("orange", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+dev.off()
+
+#plot the same for boundaries 0, 20 for better comparability to plots without dimension20/10 later on 
+#purely for presentation showcasing purposes
+#undo automatic determination of boundaries (for more consistent pngs for the presentation)
+lower = 0
+upper = 20
+
+#plot the convergence
+png("convergence_OCD_vs_Default_showcase.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,1],
+     log(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+     type = "l", ylim = c(lower, upper),
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "orange")
+
+#due to large population sizes, 100k FEs can be surpassed
+#limit plot to 100k FEs
+points(CMAES_Default$aggregatedAvgConvergence[CMAES_Default$aggregatedAvgConvergence[,1] < 100000,1],
+       log(CMAES_Default$aggregatedAvgConvergence[CMAES_Default$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(RS$aggregatedAvgConvergence[RS$aggregatedAvgConvergence[,1] < 100000,1],
+       log(RS$aggregatedAvgConvergence[RS$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "green", lwd = 4)
+
+points(GA_OCD$aggregatedAvgConvergence[GA_OCD$aggregatedAvgConvergence[,1] < 100000,1],
+       log(GA_OCD$aggregatedAvgConvergence[GA_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "blue", lwd = 4)
+
+points(GA_Default$aggregatedAvgConvergence[GA_Default$aggregatedAvgConvergence[,1] < 100000,1],
+       log(GA_Default$aggregatedAvgConvergence[GA_Default$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+       type = "l", col = "red", lwd = 4)
+
+
+legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
+       col = c("orange", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
 #get average number of restarts
@@ -918,60 +957,6 @@ mean(CMAES_Default$aggregatedAllRestarts) #3.71
 mean(GA_OCD$aggregatedAllRestarts) #3.49
 
 
-#compare OCD without restarts to default without restarts
-if(!exists("CMAES_only_default_results")) {
-  CMAES_only_default_results = loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), 
-                                                      path = "./CMAES_only_default", algorithmName = "CMAES")
-  CMAES_only_default_results = aggregateResults(CMAES_only_default_results)
-}
-CMAES_default_no_restarts = CMAES_only_default_results
-CMAES_OCD_no_restarts = loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), 
-                                               path = "./CMAES_OCD_no_restarts", algorithmName = "CMAES_OCD")
-CMAES_OCD_no_restarts = aggregateResults(CMAES_OCD_no_restarts)
-
-#define boundaries
-lower = min(c(log(CMAES_default_no_restarts$aggregatedAvgConvergence[,2]+1), 
-              log(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,2]+1)))
-
-upper = range(c(log(CMAES_default_no_restarts$aggregatedAvgConvergence[,2]+1), 
-                log(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,2]+1)), 
-              finite = TRUE)[2]
-
-#add margin for the legend
-upper = upper + upper/4
-#plot the convergence
-png("convergence_OCD_vs_Default_no_restarts.png", height = 1200, width = 1200)
-par(mar=c(9,9,2,2))
-par(mgp = c(6,2,0))
-plot(CMAES_default_no_restarts$aggregatedAvgConvergence[,1],
-     log(CMAES_default_no_restarts$aggregatedAvgConvergence[,2]+1), 
-     type = "l", 
-     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "black")
-
-points(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,1],
-       log(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,2]+1), 
-       type = "l", col = "cyan", lwd = 4)
-
-legend("topright", legend = c("CMA-ES default", "CMA-ES OCD"), 
-       col = c("black", "cyan"), lty = 1, lwd = 4, cex = 4)
-dev.off()
-
-#plot active functions
-activeFunctionsDefault = getActiveFunctions(results = CMAES_default_no_restarts)
-activeFunctionsOCD = getActiveFunctions(results = CMAES_OCD_no_restarts)
-png("active_functions_no_restarts.png", height = 1200, width = 1200)
-par(mar=c(9,9,2,2))
-par(mgp = c(6,2,0))
-plot((1:length(activeFunctionsDefault)*100), activeFunctionsDefault, 
-     type = "l", 
-     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "black")
-
-points((1:length(activeFunctionsOCD)*100), activeFunctionsOCD, 
-       type = "l", col = "cyan", lwd = 4)
-
-legend("topright", legend = c("CMA-ES default", "CMA-ES OCD"), 
-       col = c("black", "cyan"), lty = 1, lwd = 4, cex = 4)
-dev.off()
 
 #plot expected FE to reach a certain optimality gap
 #get data for cumulative distribution
@@ -1016,7 +1001,7 @@ GA_Default_cumulative_distribution =
 png("gap1_comparison.png", width = 1200, height = 1200)
 par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
-plot(CMAES_OCD_cumulative_distribution, col = "cyan", type = "l", xlab = "Function evaluations", 
+plot(CMAES_OCD_cumulative_distribution, col = "orange", type = "l", xlab = "Function evaluations", 
      ylab = "% of functions solved", cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5, axes = FALSE, ylim = c(0, 1.5))
 axis(1, cex.axis = 4)
 axis(2, at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1), cex.axis = 4)
@@ -1027,7 +1012,7 @@ lines(GA_OCD_cumulative_distribution, col = "blue", type = "l", lwd = 4)
 lines(GA_Default_cumulative_distribution, col = "red", type = "l", lwd = 4)
 
 legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
-       col = c("cyan", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+       col = c("orange", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
 #repeat for a gap of 0.01
@@ -1074,7 +1059,7 @@ GA_Default_cumulative_distribution =
 png("gap001_comparison.png", width = 1200, height = 1200)
 par(mar=c(9,9,2,2))
 par(mgp = c(6,2,0))
-plot(CMAES_OCD_cumulative_distribution, col = "cyan", type = "l", xlab = "Function evaluations", 
+plot(CMAES_OCD_cumulative_distribution, col = "orange", type = "l", xlab = "Function evaluations", 
      ylab = "% of functions solved", cex.axis = 4, cex.lab = 4, lwd = 4, cex = 5, axes = FALSE, ylim = c(0, 1.5))
 axis(1, cex.axis = 4)
 axis(2, at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1), cex.axis = 4)
@@ -1085,7 +1070,204 @@ lines(GA_OCD_cumulative_distribution, col = "blue", type = "l", lwd = 4)
 lines(GA_Default_cumulative_distribution, col = "red", type = "l", lwd = 4)
 
 legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
-       col = c("cyan", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+       col = c("orange", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+dev.off()
+
+#compare results without dimension 20
+avgConvergence_CMAES_OCD = averageConvergence(allConvergence = CMAES_OCD$aggregatedAllConvergence,
+                                              includedFunctions = 1:24, includedDimensions = (1:3), 
+                                              nDimensions = 4)
+avgConvergence_CMAES_Default = averageConvergence(allConvergence = CMAES_Default$aggregatedAllConvergence,
+                                              includedFunctions = 1:24, includedDimensions = (1:3), 
+                                              nDimensions = 4)
+avgConvergence_GA_OCD = averageConvergence(allConvergence = RS$aggregatedAllConvergence,
+                                              includedFunctions = 1:24, includedDimensions = (1:3), 
+                                              nDimensions = 4)
+avgConvergence_GA_Default = averageConvergence(allConvergence = GA_OCD$aggregatedAllConvergence,
+                                              includedFunctions = 1:24, includedDimensions = (1:3), 
+                                              nDimensions = 4)
+avgConvergence_RS = averageConvergence(allConvergence = GA_Default$aggregatedAllConvergence,
+                                         includedFunctions = 1:24, includedDimensions = (1:3), 
+                                         nDimensions = 4)
+#plot convergence
+#plot the convergence
+#determine boundaries for the plot
+lower = min(c(log(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(CMAES_Default$aggregatedAvgConvergence[CMAES_Default$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(RS$aggregatedAvgConvergence[RS$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(GA_OCD$aggregatedAvgConvergence[GA_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(GA_Default$aggregatedAvgConvergence[GA_Default$aggregatedAvgConvergence[,1] < 100000,2]+1)))
+
+upper = range(c(log(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(CMAES_Default$aggregatedAvgConvergence[CMAES_Default$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(RS$aggregatedAvgConvergence[RS$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(GA_OCD$aggregatedAvgConvergence[GA_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(GA_Default$aggregatedAvgConvergence[GA_Default$aggregatedAvgConvergence[,1] < 100000,2]+1)), 
+              finite = TRUE)[2]
+
+#add margin for the legend
+upper = upper + upper/4
+
+#undo automatic determination of boundaries (for more consistent pngs for the presentation)
+lower = 0
+upper = 20
+
+#plot the convergence
+png("convergence_OCD_vs_Default_NoDim20.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(avgConvergence_CMAES_OCD[avgConvergence_CMAES_OCD[,1] < 100000,1],
+     log(avgConvergence_CMAES_OCD[avgConvergence_CMAES_OCD[,1] < 100000,2]+1), 
+     type = "l", ylim = c(lower, upper),
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "orange")
+
+#due to large population sizes, 100k FEs can be surpassed
+#limit plot to 100k FEs
+points(avgConvergence_CMAES_Default[avgConvergence_CMAES_Default[,1] < 100000,1],
+       log(avgConvergence_CMAES_Default[avgConvergence_CMAES_Default[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(avgConvergence_RS[avgConvergence_RS[,1] < 100000,1],
+       log(avgConvergence_RS[avgConvergence_RS[,1] < 100000,2]+1), 
+       type = "l", col = "green", lwd = 4)
+
+points(avgConvergence_GA_OCD[avgConvergence_GA_OCD[,1] < 100000,1],
+       log(avgConvergence_GA_OCD[avgConvergence_GA_OCD[,1] < 100000,2]+1), 
+       type = "l", col = "blue", lwd = 4)
+
+points(avgConvergence_GA_Default[avgConvergence_GA_Default[,1] < 100000,1],
+       log(avgConvergence_GA_Default[avgConvergence_GA_Default[,1] < 100000,2]+1), 
+       type = "l", col = "red", lwd = 4)
+
+
+legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
+       col = c("orange", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+dev.off()
+
+#compare results without dimension 20 and 10
+avgConvergence_CMAES_OCD = averageConvergence(allConvergence = CMAES_OCD$aggregatedAllConvergence,
+                                              includedFunctions = 1:24, includedDimensions = (1:2), 
+                                              nDimensions = 4)
+avgConvergence_CMAES_Default = averageConvergence(allConvergence = CMAES_Default$aggregatedAllConvergence,
+                                                  includedFunctions = 1:24, includedDimensions = (1:2), 
+                                                  nDimensions = 4)
+avgConvergence_GA_OCD = averageConvergence(allConvergence = RS$aggregatedAllConvergence,
+                                           includedFunctions = 1:24, includedDimensions = (1:2), 
+                                           nDimensions = 4)
+avgConvergence_GA_Default = averageConvergence(allConvergence = GA_OCD$aggregatedAllConvergence,
+                                               includedFunctions = 1:24, includedDimensions = (1:2), 
+                                               nDimensions = 4)
+avgConvergence_RS = averageConvergence(allConvergence = GA_Default$aggregatedAllConvergence,
+                                       includedFunctions = 1:24, includedDimensions = (1:2), 
+                                       nDimensions = 4)
+#plot convergence
+#plot the convergence
+#determine boundaries for the plot
+lower = min(c(log(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(CMAES_Default$aggregatedAvgConvergence[CMAES_Default$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(RS$aggregatedAvgConvergence[RS$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(GA_OCD$aggregatedAvgConvergence[GA_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+              log(GA_Default$aggregatedAvgConvergence[GA_Default$aggregatedAvgConvergence[,1] < 100000,2]+1)))
+
+upper = range(c(log(CMAES_OCD$aggregatedAvgConvergence[CMAES_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(CMAES_Default$aggregatedAvgConvergence[CMAES_Default$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(RS$aggregatedAvgConvergence[RS$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(GA_OCD$aggregatedAvgConvergence[GA_OCD$aggregatedAvgConvergence[,1] < 100000,2]+1), 
+                log(GA_Default$aggregatedAvgConvergence[GA_Default$aggregatedAvgConvergence[,1] < 100000,2]+1)), 
+              finite = TRUE)[2]
+
+#add margin for the legend
+upper = upper + upper/4
+
+#undo automatic determination of boundaries (for more consistent pngs for the presentation)
+lower = 0
+upper = 20
+
+#plot the convergence
+png("convergence_OCD_vs_Default_NoDim20_10.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(avgConvergence_CMAES_OCD[avgConvergence_CMAES_OCD[,1] < 100000,1],
+     log(avgConvergence_CMAES_OCD[avgConvergence_CMAES_OCD[,1] < 100000,2]+1), 
+     type = "l", ylim = c(lower, upper),
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "orange")
+
+#due to large population sizes, 100k FEs can be surpassed
+#limit plot to 100k FEs
+points(avgConvergence_CMAES_Default[avgConvergence_CMAES_Default[,1] < 100000,1],
+       log(avgConvergence_CMAES_Default[avgConvergence_CMAES_Default[,1] < 100000,2]+1), 
+       type = "l", col = "black", lwd = 4)
+
+points(avgConvergence_RS[avgConvergence_RS[,1] < 100000,1],
+       log(avgConvergence_RS[avgConvergence_RS[,1] < 100000,2]+1), 
+       type = "l", col = "green", lwd = 4)
+
+points(avgConvergence_GA_OCD[avgConvergence_GA_OCD[,1] < 100000,1],
+       log(avgConvergence_GA_OCD[avgConvergence_GA_OCD[,1] < 100000,2]+1), 
+       type = "l", col = "blue", lwd = 4)
+
+points(avgConvergence_GA_Default[avgConvergence_GA_Default[,1] < 100000,1],
+       log(avgConvergence_GA_Default[avgConvergence_GA_Default[,1] < 100000,2]+1), 
+       type = "l", col = "red", lwd = 4)
+
+
+legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
+       col = c("orange", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+dev.off()
+
+#compare OCD without restarts to default without restarts
+if(!exists("CMAES_only_default_results")) {
+  CMAES_only_default_results = loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), 
+                                                      path = "./CMAES_only_default", algorithmName = "CMAES")
+  CMAES_only_default_results = aggregateResults(CMAES_only_default_results)
+}
+CMAES_default_no_restarts = CMAES_only_default_results
+CMAES_OCD_no_restarts = loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), 
+                                               path = "./CMAES_OCD_no_restarts", algorithmName = "CMAES_OCD")
+CMAES_OCD_no_restarts = aggregateResults(CMAES_OCD_no_restarts)
+
+#define boundaries
+lower = min(c(log(CMAES_default_no_restarts$aggregatedAvgConvergence[,2]+1), 
+              log(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,2]+1)))
+
+upper = range(c(log(CMAES_default_no_restarts$aggregatedAvgConvergence[,2]+1), 
+                log(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,2]+1)), 
+              finite = TRUE)[2]
+
+#add margin for the legend
+upper = upper + upper/4
+#plot the convergence
+png("convergence_OCD_vs_Default_no_restarts.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot(CMAES_default_no_restarts$aggregatedAvgConvergence[,1],
+     log(CMAES_default_no_restarts$aggregatedAvgConvergence[,2]+1), 
+     type = "l", 
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "black")
+
+points(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,1],
+       log(CMAES_OCD_no_restarts$aggregatedAvgConvergence[,2]+1), 
+       type = "l", col = "orange", lwd = 4)
+
+legend("topright", legend = c("CMA-ES default", "CMA-ES OCD"), 
+       col = c("black", "orange"), lty = 1, lwd = 4, cex = 4)
+dev.off()
+
+#plot active functions
+activeFunctionsDefault = getActiveFunctions(results = CMAES_default_no_restarts)
+activeFunctionsOCD = getActiveFunctions(results = CMAES_OCD_no_restarts)
+png("active_functions_no_restarts.png", height = 1200, width = 1200)
+par(mar=c(9,9,2,2))
+par(mgp = c(6,2,0))
+plot((1:length(activeFunctionsDefault)*100), activeFunctionsDefault, 
+     type = "l", 
+     xlab = "Function evaluations", ylab = "#of active functions", cex.axis = 4, cex.lab = 4, lwd = 4, col = "black")
+
+points((1:length(activeFunctionsOCD)*100), activeFunctionsOCD, 
+       type = "l", col = "orange", lwd = 4)
+
+legend("topright", legend = c("CMA-ES default", "CMA-ES OCD"), 
+       col = c("black", "orange"), lty = 1, lwd = 4, cex = 4)
 dev.off()
 
 #plot convergence for another second run
@@ -1113,10 +1295,9 @@ GA_OCD2 = aggregateResults(GA_OCD2)
 
 GA_results_agg2 = loadAllResultsParallel(usedFunctions = 1:24, usedDimensions = c(2,5,10,20), path = "./GA_default2",
                                         algorithmName = "GA")
-GA_results_agg2 = aggregateResults(GA_Default2)
+GA_results_agg2 = aggregateResults(GA_results_agg2)
 GA_Default2 = GA_results_agg2
 
-#plot convergence
 #plot the convergence
 #determine boundaries for the plot
 lower = min(c(log(CMAES_OCD2$aggregatedAvgConvergence[CMAES_OCD2$aggregatedAvgConvergence[,1] < 100000,2]+1), 
@@ -1135,6 +1316,10 @@ upper = range(c(log(CMAES_OCD2$aggregatedAvgConvergence[CMAES_OCD2$aggregatedAvg
 #add margin for the legend
 upper = upper + upper/4
 
+#undo automatic determination of boundaries (for more consistent pngs for the presentation)
+lower = 5
+upper = 20
+
 #plot the convergence
 png("convergence_OCD_vs_Default2.png", height = 1200, width = 1200)
 par(mar=c(9,9,2,2))
@@ -1142,7 +1327,7 @@ par(mgp = c(6,2,0))
 plot(CMAES_OCD2$aggregatedAvgConvergence[CMAES_OCD2$aggregatedAvgConvergence[,1] < 100000,1],
      log(CMAES_OCD2$aggregatedAvgConvergence[CMAES_OCD2$aggregatedAvgConvergence[,1] < 100000,2]+1), 
      type = "l", ylim = c(lower, upper),
-     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "cyan")
+     xlab = "Function evaluations", ylab = "log(average best value + 1)", cex.axis = 4, cex.lab = 4, lwd = 4, col = "orange")
 
 #due to large population sizes, 100k FEs can be surpassed
 #limit plot to 100k FEs
@@ -1164,5 +1349,5 @@ points(GA_Default2$aggregatedAvgConvergence[GA_Default2$aggregatedAvgConvergence
 
 
 legend("topright", legend = c("CMA-ES OCD", "CMA-ES default", "RandomSearch", "GA OCD", "GA default"), 
-       col = c("cyan", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
+       col = c("orange", "black", "green", "blue", "red"), lty = 1, lwd = 4, cex = 4)
 dev.off()

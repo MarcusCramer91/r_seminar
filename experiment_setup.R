@@ -1,6 +1,14 @@
 source("./cmaes/cmaes.R")
 source("customized_bbob.R")
+source("output_analysis_function.R")
+source("output_interpreter.R")
 
+
+##########################################################################################################
+#in this section, all the experiments are run
+#if you already have the results (the ones from the USB stick) proceed to line 240
+#these runs generate the results required for the analysis part
+#these runs will take multiple days, so if you have the results aready you probably want to skip this part
 
 #default run of CMAES with only default stopping criteria
 suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_default_run", 
@@ -231,46 +239,12 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "G
                                       dispersion = FALSE,  evolutionPath = FALSE, restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
 
-
-
-
-#debugging
-
-suppressWarnings(bbob_custom(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "debugging", 
-                             dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
-                             stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                             OCD = TRUE, varLimit = 0.001, nPreGen = 100, restart_multiplier = 2, 
-                             restart_triggers = "OCD"))
-
-suppressWarnings(bbob_custom(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "asdf", 
-                             dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1, maxit = NULL, 
-                             stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                             OCD = TRUE, varLimit = 0.001, nPreGen = 100, restart_multiplier = 2, 
-                             restart_triggers = "OCD", debug.logging = TRUE, fitnessValue = TRUE))
-
-
-#debugging end
-
-
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_mergetest", 
-                             maxit = NULL, stopFitness = NULL, maxFE = NULL, 
-                             function_ids = 5, instances = 1, dimensions = 20, debug.logging = TRUE))
-
-# testing Andi
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "CMAES_OCD", 
-                             maxit = , stopFitness = NULL, maxFE = NULL, OCD = TRUE,
-                             function_ids = 1, instances = 1, dimensions = c(2,5)))
-
-#some more testing
-
-suppressWarnings(bbob_custom(optimizerCMAES, "cmaes", "test_def", 
-                             maxit = NULL, stopFitness = NULL, maxFE = NULL, 
-                             function_ids = 6, instances = 1, dimensions = 20))
-
-
-suppressWarnings(bbob_custom(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", data_directory = "debug_ocd", 
-                             dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
-                             stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
-                             OCD = TRUE, varLimit = 0.01, nPreGen = 10, restart_multiplier = 2, 
-                             restart_triggers = "OCD"))
-
+###############################################################################################################
+#analysis part
+#check if all required results exist in the working directory
+#this step might take several hours
+#lean back and enjoy the ride (or skip and have a look at the pngs provided by us)
+#for presentation purposes the images do not have a caption
+#so for interpretation, have a look at the self-explanatory names or read our documentation
+isComplete = checkLogCompleteness(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15)
+if (isComplete) createOutputImages("./images")
