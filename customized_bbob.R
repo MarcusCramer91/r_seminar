@@ -34,7 +34,7 @@
 #' @references
 #' TODO
 #' @keywords optimize
-#' @param optimizer [\code{function}]\cr
+#' @param optimizer 
 #'   The first argument passed to customized_bbob is an optimization wrapper, i.e. the particular optimizer under test. 
 #'   The optimizer has to adhere to the following function signature:
 #'   \code{function(dimension, instance, function_id, maxit, maxFE, stopFitness, path, debug.logging, max_restarts, 
@@ -42,59 +42,59 @@
 #'   However, the user does not need to specify every argument in an optimizer but it must be able to
 #'   deal with functions of the type \code{smoof_function}, that gets \code{dimension, instance, function_id} as 
 #'   input parameters.
-#' @param algorithm.id [\code{string}]\cr
+#' @param algorithm.id
 #'   The \code{algorithm.id} is a short descriptive name for the optimization algorithm under test.
 #'   The \code{algorithm.id} will be part of the caption of the output log files. See detail section.
-#' @param data_directory [\code{string}]\cr
+#' @param data_directory
 #'   The \code{data_directory} specifies the location of the output log files. See detail section for more information.
-#' @param dimensions [\code{integer}]\cr
+#' @param dimensions
 #'   The \code{dimensions} parameter determines the dimensions to be passed to the optimizer under test. Possible values are between
 #'   2 and 40.
 #'   Default is \code{c(2, 3, 5, 10, 20, 40)}.
-#' @param instances [\code{integer}]\cr
+#' @param instances
 #'   Every \code{smoof_function} can be instantiated in different ways. Could be either a single intergerish value 
 #'   greater of equals 1 or a vector with such values. Default is \code{c(1:15)}
-#' @param function_ids [\code{integer(1)}]\cr
+#' @param function_ids
 #'   The \code{function_ids} are the unique identifier of the 24 noiseless bbob function. 
 #'   Default is \code{c(1:24)}.
-#' @param maxit [\code{integer}]\cr
+#' @param maxit
 #'   If \code{maxFE} is not passed, the number of iterations, \code{maxit}, serves as an upper execution limit for optimizing one function.
 #'   Default is \code{NULL}.
-#' @param stopFitness [\code{numeric}]\cr
+#' @param stopFitness
 #'   If \code{stopFitness} is specified, the optimization is terminated if the gap between the current function
 #'   value and the global optimum of the function is below the value of \code{stopFitness}. 
 #'   Default is \code{NULL}.
-#' @param maxFE [\code{interger}]\cr
+#' @param maxFE
 #'   \code{maxFE} is another upper execution limit for a function optimization. The limit \code{maxFE} is favored over
 #'   maxit/stopfitness, if both are not \code{NULL}.
 #'   Default is \code{NULL}.
-#' @param debug.logging [\code{logical}]\cr
+#' @param debug.logging
 #'   \code{debug.logging} ...
 #'   Default is \code{FALSE}.
-#' @param max.restarts [\code{integer}]\cr
+#' @param max.restarts
 #'   If \code{max.restarts} the optimizer restarts the optimization if one of the passed \code{restart_triggers} has fired.
 #'   In order to use this feature, the optimizer under test must be able to restart the optimization.
 #'   Default is \code{FALSE}.
-#' @param restart.triggers [\code{string}]\cr
+#' @param restart.triggers
 #'   If \code{restart.triggers} are passed, the optimizer restarts the optimization if one of those triggers has fired.
 #'   In order to use this feature, the optimizer under test must be able to restart the optimization.
 #'   Default is \code{FALSE}.
-#' @param OCD [\code{logical}]\cr
+#' @param OCD
 #'   \code{OCD} indicates if Online Convergence Detection (OCD) should be used as a stopping condition of the
 #'   optimizer under test. OCD can only be activated if the optimizer has implemented the functionality necessary for OCD.
 #'   See \code{\link{stopOnOCD}} for further necessary parameters.
 #'   Default is \code{FALSE}.
-#' @param varLimit [\code{logical}]\cr
+#' @param varLimit
 #'   \code{varLimit}: OCD Parameter (See \code{\link{stopOnOCD}})
-#' @param nPreGen [\code{logical}]\cr
+#' @param nPreGen
 #'   \code{nPreGen}: OCD Parameter (See \code{\link{stopOnOCD}})
-#' @param maxGen [\code{logical}]\cr
+#' @param maxGen
 #'   \code{maxGen}: OCD Parameter (See \code{\link{stopOnOCD}})
-#' @param fitnessValue [\code{logical}]\cr
+#' @param fitnessValue
 #'   \code{fitnessValue}: OCD Parameter (See \code{\link{stopOnOCD}})
-#' @param dispersion [\code{logical}]\cr
+#' @param dispersion
 #'   \code{disperion}: OCD Parameter (See \code{\link{stopOnOCD}})
-#' @param evolutionPath [\code{logical}]\cr
+#' @param evolutionPath
 #'   \code{evolutionPath}: OCD Parameter (See \code{\link{stopOnOCD}})
 #' @return bbob_custom does not return anything but writes the results of the experiment to log files, to be
 #' processed with \code{\link{readOutput}}
@@ -197,8 +197,6 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
 #'   \code{disperion}: OCD Parameter (See \code{\link{stopOnOCD}})
 #' @param evolutionPath [\code{logical}]\cr
 #'   \code{evolutionPath}: OCD Parameter (See \code{\link{stopOnOCD}})
-#' @param path [\code{string}]\cr
-#'  Do we really need a path here???
 #' @description
 #' Optimizers ready for usage in bbob_custom or bbob_custom parallel
 #' @details
