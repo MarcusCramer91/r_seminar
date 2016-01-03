@@ -229,8 +229,11 @@ stopOnCondCov = function(tol = 1e14) {
 #===============================================================================
 #' @title Stopping condition: Online Convergence Detection.
 #'
-#' @description Stop if OCD....
+#' @description StopOnOCD.
 #'
+#' @param max.iter [integer(1)]\cr
+#'   Maximal number of iterations.
+#'   Default is \code{100}.
 #' @return [\code{cma_stopping_condition}]
 #' @family stopping conditions
 #' @export
