@@ -44,7 +44,7 @@ The first step was concerned with the implementation of OCD for CMA-ES. There ar
 
 * fitness value of individuals
 * dispersion of the population
-* step-size (evolution path) of the iterations
+* step-size (evolution path) between the iterations
 
 For detailed information about the necessary code adaptions of the CMA-ES source code and the implementation of OCD, please confer the following .R files:
 ```{r,warning=FALSE,message=FALSE, eval=FALSE}
