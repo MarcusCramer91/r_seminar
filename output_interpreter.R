@@ -690,7 +690,7 @@ checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 1
         data = read.table(paste(currentDir, currentFile, sep = "/"), skip = 0, fill = TRUE, row.names = NULL)
         #check whether nInstances are logged 
         if (algorithmNames[dirAlgorithmMatch[i]] != "random search") {
-          if (length(grep("\\<Instance\\>", data[,3])) != nInstances) {
+          if ((length(grep("\\<Instance\\>", data[,3]))+length(grep("\\<Instance\\>", data[,4]))) != nInstances) {
             print(paste("Number of found instances deviates from specified number of distances in file", 
                        currentFile, "in directory", 
                        currentDir, ". Should be", nInstances, 
