@@ -9,6 +9,9 @@ source("output_interpreter.R")
 #if you already have the results (the ones from the USB stick) proceed to line 240
 #these runs generate the results required for the analysis part
 #these runs will take multiple days, so if you have the results aready you probably want to skip this part
+#if you do not skip this part: For safety reasons, the created directories have the current date in front
+#you need to remove this date manually in order for the output generator to work properly
+
 
 #default run of CMAES with only default stopping criteria
 suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "CMAES_default_run", 
@@ -62,6 +65,7 @@ suppressWarnings(bbob_custom_parallel(optimizerGA, "GA", "GA_default",
 
 #apply OCD
 #find good values for varLimit and nPreGen
+#for the analysis, the output of these functions must be copied in a folder called "OCD_parametrization"
 suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
                                       data_directory = "OCD_RUN_0.01_10", 
                                       dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
@@ -133,6 +137,31 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id =
                                       OCD = TRUE, varLimit = 0.0001, nPreGen = 1000, fitnessValue = TRUE, 
                                       dispersion = FALSE, evolutionPath = FALSE,restart_multiplier = 2, 
                                       restart_triggers = "OCD"))
+
+suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
+                                      data_directory = "OCD_RUN_0.00001_10", 
+                                      dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
+                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
+                                      OCD = TRUE, varLimit = 0.00001, nPreGen = 10, fitnessValue = TRUE, 
+                                      dispersion = FALSE, evolutionPath = FALSE,restart_multiplier = 2, 
+                                      restart_triggers = "OCD"))
+
+suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
+                                      data_directory = "OCD_RUN_0.00001_100", 
+                                      dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
+                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
+                                      OCD = TRUE, varLimit = 0.00001, nPreGen = 100, fitnessValue = TRUE, 
+                                      dispersion = FALSE, evolutionPath = FALSE,restart_multiplier = 2, 
+                                      restart_triggers = "OCD"))
+
+suppressWarnings(bbob_custom_parallel(optimizer = optimizerCMAES, algorithm_id = "CMAES_OCD", 
+                                      data_directory = "OCD_RUN_0.00001_1000", 
+                                      dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, 
+                                      stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, 
+                                      OCD = TRUE, varLimit = 0.00001, nPreGen = 1000, fitnessValue = TRUE, 
+                                      dispersion = FALSE, evolutionPath = FALSE,restart_multiplier = 2, 
+                                      restart_triggers = "OCD"))
+#################
 
 #run for different performance indicators
 #fitnessValue as indicator is taken from above runs
@@ -247,4 +276,6 @@ suppressWarnings(bbob_custom_parallel(optimizer = optimizerGA, algorithm_id = "G
 #for presentation purposes the images do not have a caption
 #so for interpretation, have a look at the self-explanatory names or read our documentation
 isComplete = checkLogCompleteness(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15)
-if (isComplete) createOutputImages("./images")
+#the progress bars appearing relate to loading the logs
+#this will happen multiple times, so ignore them for this function call
+if (isComplete) createOutputImages("./resultImages")
