@@ -16,7 +16,7 @@
 ### END ###
 
 #' @name bbo_benchmarking
-#' @title customized bbo-benchmarking
+#' @title Customized BBo-Benchmarking
 #' @aliases bbob_custom_parallel
 #' @aliases bbob_custom
 #' @description
@@ -148,7 +148,7 @@ bbob_custom = function(optimizer, algorithm_id, data_directory, dimensions = c(2
 }
 
 #' @name bbo_benchmarking_optimizers
-#' @title optimizer for bbo_benchmarking
+#' @title Optimizer for BBo_Benchmarking
 #' @aliases optimizerCMAES
 #' @aliases optimizerCMAESWithoutDef
 #' @aliases optimizerRS
