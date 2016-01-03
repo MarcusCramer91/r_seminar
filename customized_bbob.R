@@ -21,7 +21,7 @@
 #' @aliases bbob_custom
 #' @description
 #' provides an interface for benchmarking optimization algorithms over all 24 noiseless bbob functions.
-#' Use either code{bbob_custom} or code{bbob_custom_parallel} for parallel execution.
+#' Use either \code{bbob_custom} or \code{bbob_custom_parallel} for parallel execution.
 #'
 #' @details
 #' bbob_custom provides a benchmarking function as a highlevel interface for running experiments
