@@ -4,14 +4,27 @@
 ###################################################################################
 #Output analysis of CMAES with only default stopping criteria
 #creates all the output images
+#' @title Output Analysis of CMAES
+#' @description 
+#' \code{createOutputImages} creates all relevant analysis results in form of images.
+#' @details 
+#' \code{createOutputImages} will only work, if every necessary file is present in the working directory.
+#' @param outputPath
+#' The user has to define the desired path \code{outputPath}. A folder will be created and filled with analysis results.
+#' @return 
+#' \code{outputPath} creates a folder on harddrive that contains every image or result of the benchmarking experiments conducted to 
+#' compare the default stopping criterion of CMAES with OCD as a criterion.
+#' @import ggplot2
+#' @import BBmisc
+# no export as it is not recommended to use this function separately.
 createOutputImages = function(outputPath) {
   dir.create(outputPath, showWarnings = FALSE)
-  if (!"ggplot2" %in% rownames(installed.packages())) install.packages("ggplot2")
-  if (!"BBMisc" %in% rownames(installed.packages())) install.packages("BBMisc")
-  require(ggplot2)
-  require(BBMisc)
+  #if (!"ggplot2" %in% rownames(installed.packages())) install.packages("ggplot2")
+  #if (!"BBMisc" %in% rownames(installed.packages())) install.packages("BBMisc")
+  #require(ggplot2)
+  #require(BBMisc)
   #source necessary functions
-  source("output_interpreter.R")
+  #source("output_interpreter.R")
   ################################################################################
   #get results for the first default run
   CMAES_only_default_results = 

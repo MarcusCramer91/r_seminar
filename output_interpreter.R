@@ -627,15 +627,18 @@ getActiveFunctions = function(results) {
 
 #' @title Average Convergence per Function and/or per Dimension
 #' @description
-#' average convergence per function or per dimension or per a combination of both.
-#' @param allConvergence TODO
+#' \code{averageConvergence} returns a matrix with the convergence values per function or per dimension or per a combination of both.
+#' @param allConvergence
+#' matrix of convergence values
 #' @param nDimensions 
 #' the number of dimensions for which data exists and results should be computed (nDimensions is the total number of logged dimensions,
 #' i.e. \code{nDimensions} has to be a counting value, not the actual dimensionality)
-#' @param includedFunctions TODO
-#' @param includedDimensions TODO
+#' @param includedFunctions
+#' functions for which the average convergence should be computed
+#' @param includedDimensions
+#' dimensions for which the average convergence should be computed
 #' @return
-#' TODO
+#' \code{averageConvergence} returns the average of the convergence values for the functions and/or dimensions specified when calling the function.
 #average convergence per function or per dimension or per a combination of both
 #nDimensions is the total number of logged dimensions, not only of the included ones
 #included dimensions has to be a counting value, not the actual dimensionality
@@ -651,7 +654,7 @@ averageConvergence = function(allConvergence, includedFunctions, includedDimensi
   avgConvergence = cbind(allConvergence[,1], avgConvergence)
 }
 
-#' @export
+
 #checks whether all required logs for the R file output_analysis.R exist
 checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15) {
   checkSuccessful = TRUE
