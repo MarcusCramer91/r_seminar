@@ -1,7 +1,15 @@
 source("./cmaes/cmaes.R")
+source("./cmaes/helpers.R")
+source("./cmaes/makeMonitor.R")
+source("./cmaes/makeStoppingCondition.R")
+source("./cmaes/OnlineConvergenceDetection.R")
+source("./cmaes/stoppingConditions.R")
 source("customized_bbob.R")
 source("output_analysis_function.R")
 source("output_interpreter.R")
+require(BBmisc)
+require(parallel)
+require(snow)
 
 
 ##########################################################################################################

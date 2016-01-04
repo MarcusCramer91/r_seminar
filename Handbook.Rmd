@@ -141,7 +141,7 @@ The analysis functionality included in the package makes use of various plots th
 isComplete = checkLogCompleteness(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15)
 ```
 
-2. If all log files are complete, the execution of the following function will return every image and plot that has been created during the project.
+2. If all log files are complete, the execution of the following function will return every image and plot that has been created during the project. Alternatively, have a look in the image folder supplied by us under "results/resultImages".  
 
 ```{r,warning=FALSE,message=FALSE, eval=FALSE}
 if (isComplete) createOutputImages("./resultImages")

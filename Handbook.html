@@ -168,7 +168,7 @@ aggregateResults(allresults)</code></pre>
 </ol>
 <pre class="r"><code>isComplete = checkLogCompleteness(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15)</code></pre>
 <ol start="2" style="list-style-type: decimal">
-<li>If all log files are complete, the execution of the following function will return every image and plot that has been created during the project.</li>
+<li>If all log files are complete, the execution of the following function will return every image and plot that has been created during the project. Alternatively, have a look in the image folder supplied by us under “results/resultImages”.</li>
 </ol>
 <pre class="r"><code>if (isComplete) createOutputImages(&quot;./resultImages&quot;)</code></pre>
 <p>This step might take several hours. As a result you will have a folder filled with plots and images necessary for analysing the stagnation behaviour of CMA-ES.</p>
