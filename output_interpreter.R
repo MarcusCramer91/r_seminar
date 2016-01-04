@@ -735,7 +735,6 @@ checkLogCompleteness = function(usedFunctions = 1:24, usedDimensions = c(2, 5, 1
   return(checkSuccessful)
 }
 
-#' @export
 generateGraphs = function() {
   source("output_analysis.R")
 }
