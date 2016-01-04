@@ -11,7 +11,7 @@ if (!"rJava" %in% rownames(installed.packages())) install.packages("rJava")
 if (!"microbenchmark" %in% rownames(installed.packages())) install.packages("microbenchmark")
 if (!"devtools" %in% rownames(installed.packages())) install.packages("devtools")
 if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
-
+source("./cmaes")
 require(cmaes)
 require(bbob)
 require(rCMA)
@@ -19,8 +19,8 @@ require(rJava)
 require(microbenchmark)
 require(smoof)
 require(devtools)
-require(cmaesr)
-install_github(repo = "MarcusCramer91/cmaesr")
+require(parallel)
+require(snow)
 
 #customized bbob version that does not require any c-code and should be much faster 
 #than the framework provided by the bbob package (this version is without result printing)
@@ -135,13 +135,13 @@ optimizer = function(dimension, instance, function_id, maxit, maxFE, stopFitness
   if (!is.null(stopFitness)) {
     optValue = getGlobalOptimum(fun)
     condition2 = stopOnOptValue(optValue, stopFitness)
-    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)))
+    result = cmaes_custom(fun, monitor = monitor, control = list (stop.ons = list(condition1, condition2)))
   }
   else if (!is.null(condition1)) {
-    result = cmaes(fun, monitor = monitor, control = list (stop.ons = list(condition1)))
+    result = cmaes_custom(fun, monitor = monitor, control = list (stop.ons = list(condition1)))
   }
   #use default if no stopping criterion is defined
-  else result = cmaes(fun, monitor = monitor)
+  else result = cmaes_custom(fun, monitor = monitor)
   return(result)
 }
 
@@ -165,6 +165,7 @@ mean(benchmarkResultCMAESr$time)
 
 #################################
 #benchmark parallelization
+source("customized_bbob.R")
 res_parallel = 
   microbenchmark(suppressWarnings(bbob_custom_parallel(optimizerCMAES, "cmaes", "parallel_benchmark", 
                                       maxit = NULL, stopFitness = 1e-08, maxFE = 100, 
