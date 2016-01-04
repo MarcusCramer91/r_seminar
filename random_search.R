@@ -1,5 +1,6 @@
 #does what the name suggests
 #samples random values and stores the best
+#' @export
 random_search = function(fun, maxFE = NULL) {
   if (!"smoof" %in% rownames(installed.packages())) install.packages("smoof")
   require(smoof)
