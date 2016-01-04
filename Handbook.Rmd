@@ -16,6 +16,8 @@ for executing the R-code necessary for generating results. Please note that some
 
 A detailed interpretation of the project's results can be found in the documentation "Application of Online Convergence Detection to the Covariance Matrix Adaptation Evolution Strategy on the Black-Box Optimization test bed".
 
+#### Disclaimer: We developed a package for general purpose functions that can be applied for own BBOB experiments with CMA-ES OCD, GA OCD and RandomSearch. We also provide the source files which contain our concrete function calls and analyses. Please read the following sections for a detailed overview of the package and our experiment setup. 
+
 ## Package installation
 For installing and loading the required package that contains every necessary .R file, execute the following:
 ```{r,warning=FALSE,message=FALSE, eval=FALSE}

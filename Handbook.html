@@ -63,13 +63,16 @@ img {
 <div id="header">
 <h1 class="title">Project 2: Investigation of CMA-ES stagnation behaviour</h1>
 <h4 class="author"><em>Marcus Cramer, Andreas Hermann</em></h4>
-<h4 class="date"><em>Sunday, January 03, 2016</em></h4>
+<h4 class="date"><em>Monday, January 04, 2016</em></h4>
 </div>
 
 
 <p>Topic: The Covariance Matrix Adaption - Evolution Strategy (CMA-ES) is a State-Of-The Art algorithm in single-objective black-box optimization. The interal stopping criteria have been fixed on sophisticated tuning and intuition. The goal of this project is a comparison of the internal stopping criteria to Online Convergence Detection (OCD). Originally, OCD has been designed for multiobjective optimization. Consequently, the first step is to make OCD suitable to be used as a stopping criterion within CMA-ES. For this project the CMA-ES implementation of Jakob Bossek has been used. Afterwards, CMA-ES with both the internal and the OCD stopping conditions have been applied to the 24 noiseless functions of the Black-Box Optimization Benchmarking (BBOB) testset. The results of these experiments build the basis for a systematic comparison of OCD and the internal stopping criterion of CMA-ES. Additionally, the performance of CMA-ES under OCD has been compared to the Genetic Algorithm (GA) with OCD activated and RandomSearch.</p>
 <p>This document gives the reader a short introduction through the development process of the project and serves as a tutorial for executing the R-code necessary for generating results. Please note that some code snippets can be executed for creating individual results that might serve a different purpose as the project does. However, the analysis is only executable for the supplied log files.</p>
 <p>A detailed interpretation of the project’s results can be found in the documentation “Application of Online Convergence Detection to the Covariance Matrix Adaptation Evolution Strategy on the Black-Box Optimization test bed”.</p>
+<div id="disclaimer-we-developed-a-package-for-general-purpose-functions-that-can-be-applied-for-own-bbob-experiments-with-cma-es-ocd-ga-ocd-and-randomsearch.-we-also-provide-the-source-files-which-contain-our-concrete-function-calls-and-analyses.-please-read-the-following-sections-for-a-detailed-overview-of-the-package-and-our-experiment-setup." class="section level4">
+<h4>Disclaimer: We developed a package for general purpose functions that can be applied for own BBOB experiments with CMA-ES OCD, GA OCD and RandomSearch. We also provide the source files which contain our concrete function calls and analyses. Please read the following sections for a detailed overview of the package and our experiment setup.</h4>
+</div>
 <div id="package-installation" class="section level2">
 <h2>Package installation</h2>
 <p>For installing and loading the required package that contains every necessary .R file, execute the following:</p>
