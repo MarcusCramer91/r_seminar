@@ -21,5 +21,4 @@ devtools::document("./cmaesbenchmarking")
 # paste DECSRIPTION into package folder cmaesbenchmarking
 install_local("./cmaesbenchmarking")
 
-
  
