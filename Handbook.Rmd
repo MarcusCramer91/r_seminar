@@ -158,3 +158,7 @@ This step might take several hours. As a result you will have a folder filled wi
 * performance_benchmark - contains runtime performance benchmarks for parallel versions and the original BBOB implementation and the customized BBOB implementation; can only be run from top to bottom.
 * random_search.R - contains an own implementation of Random Search.
 * rbga.R - contains the Genetic Algorithm from the official package genalg with OCD compatibility and logging functionalities
+* cmaes/cmaes.R - contains the function cmaes_custom with OCD compatiblity and logging
+* cmaes/makeMonitor.R - contains the function makeTXTMonitor for our .txt logging
+* cmaes/stoppingConditions.R - contains the OCD stopping conditions with the variance test and the regression test
+* cmaes/ - all other files and methods are taken from Jakob Bossek (jakobbossek/cmaesr on github)
