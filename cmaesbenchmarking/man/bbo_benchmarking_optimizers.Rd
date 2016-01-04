@@ -6,7 +6,7 @@
 \alias{optimizerCMAESWithoutDef}
 \alias{optimizerGA}
 \alias{optimizerRS}
-\title{optimizer for bbo_benchmarking}
+\title{Optimizer for BBo_Benchmarking}
 \usage{
 optimizerCMAES(dimension, instance, function_id, maxit, maxFE, stopFitness,
   path, debug.logging = FALSE, max_restarts, restart_multiplier,
@@ -40,9 +40,6 @@ the optimizer terminates the optimization.}
 \item{stopFitness}{[\code{numeric}]\cr
 If \code{stopFitness} is specified, the optimization is terminated if the gap between the current function
 value and the global optimum of the function is below the value of \code{stopFitness}.}
-
-\item{path}{[\code{string}]\cr
-Do we really need a path here???}
 
 \item{debug.logging}{[\code{logical}]\cr
 \code{debug.logging} ...
