@@ -12,7 +12,9 @@ criterion to Online Convergence Detection (OCD). Originally, OCD has been design
 OCD suitable to be used as a stopping criterion within CMA-ES. For this project the CMA-ES implementation of Jakob Bossek has been used. Afterwards, CMA-ES with both stopping conditions has been applied to the 24 noiseless functions of the Black-Box Optimization Benchmarking (BBOB) testsest. The results of these experiments built the basis for a systematic comparison of OCD and the internal stopping criterion of CMA-ES. Additionally, the performance of CMA-ES under OCD has been compared to the Genetic Algorithm (GA) with OCD activated.
 
 This document gives the reader a short intro through the delopment process of the project and serves as a tutorial
-for executing the R-code necessary for generating results.
+for executing the R-code necessary for generating results. Please note, that some code snippets can be executed for creating individual results that might serve a different purpose as the project does. However, the analysis is only executable for the supplied log files.
+
+A detailed interpretation of the project's results can be found in the documentation "NAME HERE".
 
 ## Package installation
 For installing and loading the required package that contains every necessary .R file, execute the following:
@@ -22,7 +24,7 @@ library(cmaesbenchmarking)
 ```
 
 If everything worked fine, you should have installed the package "cmaesbenchmarking" and all further required packages for executing functions of cmaesbenchmarking.
-For detailed information about the included function, please confer the corresponding help pages of the package:
+For detailed information about the included functions, please confer the corresponding help pages of the package:
 
 ### Help pages of cmaesbenchmarking
 ```{r,warning=FALSE,message=FALSE}
@@ -76,7 +78,7 @@ For detailed information about the necessary adaptions of the source code of the
 rbga.R
 ```
 
-### Step 3: Reading and Interpreting results of an BBOB experiment
+### Step 3: Reading and Interpreting results of the BBOB experiments
 
 For loading/reading the output of an experiment stored in corresponding log files the user could make use of the following functions (Confer the corresponding help pages for detailed information on the necessary parameters and return objects):
 
@@ -116,5 +118,19 @@ Further interpretation of the results has been performed by the following functi
 
 Finally, all results were ready for being analysed in a graphical manner.
 
-### Step 4: Analysing results of an BBOB experiments
-TODO
+### Step 4: Analysing results of the BBOB experiments
+The analysis functionality included in the package makes use of various plots the are based on the interpreted results of step 3. These visualizations allowed an extensive comparison of the internal stopping conditions of CMA-ES with OCD. In order to reproduce all the visualizations for the comparison, the following steps are required:
+
+1. It has to be checked if all results of all the experiments are in place:
+
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+isComplete = checkLogCompleteness(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15)
+```
+
+2. If all log files are complete, the execution of the following function will return every image and plot that has been created during the project.
+
+```{r,warning=FALSE,message=FALSE, eval=FALSE}
+if (isComplete) createOutputImages("./resultImages")
+```
+
+This step might take several hours. As a result you will have a folder filled with plots and images necessary for analysing the stagnation behaviour of CMA-ES.

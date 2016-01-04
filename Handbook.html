@@ -68,13 +68,14 @@ img {
 
 
 <p>Topic: The Covariance Matrix Adaption - Evolution Strategy (CMA-ES) is a State-Of-The Art algorithm in single-objective black-box optimization. The interal stopping criterion has been fixed on sophisticated tuning and intuition. The goal of this project is a comparison of the internal stopping criterion to Online Convergence Detection (OCD). Originally, OCD has been designed for multiobjective optimization. Apparently, the first step is to make OCD suitable to be used as a stopping criterion within CMA-ES. For this project the CMA-ES implementation of Jakob Bossek has been used. Afterwards, CMA-ES with both stopping conditions has been applied to the 24 noiseless functions of the Black-Box Optimization Benchmarking (BBOB) testsest. The results of these experiments built the basis for a systematic comparison of OCD and the internal stopping criterion of CMA-ES. Additionally, the performance of CMA-ES under OCD has been compared to the Genetic Algorithm (GA) with OCD activated.</p>
-<p>This document gives the reader a short intro through the delopment process of the project and serves as a tutorial for executing the R-code necessary for generating results.</p>
+<p>This document gives the reader a short intro through the delopment process of the project and serves as a tutorial for executing the R-code necessary for generating results. Please note, that some code snippets can be executed for creating individual results that might serve a different purpose as the project does. However, the analysis is only executable for the supplied log files.</p>
+<p>A detailed interpretation of the project’s results can be found in the documentation “NAME HERE”.</p>
 <div id="package-installation" class="section level2">
 <h2>Package installation</h2>
 <p>For installing and loading the required package that contains every necessary .R file, execute the following:</p>
 <pre class="r"><code>devtools::install_github(&quot;andreas-he/cmaesbenchmarking&quot;)
 library(cmaesbenchmarking)</code></pre>
-<p>If everything worked fine, you should have installed the package “cmaesbenchmarking” and all further required packages for executing functions of cmaesbenchmarking. For detailed information about the included function, please confer the corresponding help pages of the package:</p>
+<p>If everything worked fine, you should have installed the package “cmaesbenchmarking” and all further required packages for executing functions of cmaesbenchmarking. For detailed information about the included functions, please confer the corresponding help pages of the package:</p>
 <div id="help-pages-of-cmaesbenchmarking" class="section level3">
 <h3>Help pages of cmaesbenchmarking</h3>
 <pre class="r"><code>?bbo_benchmarking
@@ -97,7 +98,7 @@ library(cmaesbenchmarking)</code></pre>
 <ul>
 <li>fitness value of individuals</li>
 <li>dispersion of the population</li>
-<li>step-size (evolution path) of the iterations</li>
+<li>step-size (evolution path) between the iterations</li>
 </ul>
 <p>For detailed information about the necessary code adaptions of the CMA-ES source code and the implementation of OCD, please confer the following .R files:</p>
 <pre class="r"><code>stopOnOCD.R
@@ -123,7 +124,7 @@ result = readOutput(file)
 allresult = loadAllResults(usedFunctions, usedDimensions, path, algorithmName)
 # parallel version for a number of log files
 allresult = loadAllResultsParallel(usedFunctions, usedDimensions, path, algorithmName)</code></pre>
-<p>All log files produced by the set up experiments were loaded in a similar procedure. After loading all desired log files the user could use the function aggregateResults. This function takes a number of result objects and aggregates those results. For example the user might eecute something like the following:</p>
+<p>All log files produced by the conducted experiments were loaded in a similar procedure. After loading all desired log files the user could use the function aggregateResults. This function takes a number of result objects and aggregates those results. For example the user might eecute something like the following:</p>
 <pre class="r"><code># first variant
 result1 = readOutput(file1)
 result2 = readOutput(file2)
@@ -143,7 +144,16 @@ aggregateResults(allresults)</code></pre>
 </div>
 <div id="step-4-analysing-results-of-an-bbob-experiments" class="section level3">
 <h3>Step 4: Analysing results of an BBOB experiments</h3>
-<p>TODO</p>
+<p>The analysis functionality included in the package makes use of various plots the are based on the interpreted results of step 3. These visualizations allowed an extensive comparison of the internal stopping conditions of CMA-ES with OCD. In order to reproduce all the visualizations for the comparison, the following steps are required:</p>
+<ol style="list-style-type: decimal">
+<li>It has to be checked if all results of all the experiments are in place:</li>
+</ol>
+<pre class="r"><code>isComplete = checkLogCompleteness(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15)</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>If all log files are complete, the execution of the following function will return every image and plot that has been created during the project.</li>
+</ol>
+<pre class="r"><code>if (isComplete) createOutputImages(&quot;./resultImages&quot;)</code></pre>
+<p>This step might take several hours. As a result you will have a folder filled with plots and images necessary for analysing the stagnation behaviour of CMA-ES.</p>
 </div>
 </div>
 
