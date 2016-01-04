@@ -164,7 +164,7 @@ aggregateResults(allresults)</code></pre>
 <h3>Step 2: Analysing results of the BBOB experiments.</h3>
 <p>The analysis functionality included in the package makes use of various plots the are based on the interpreted results of step 3. These visualizations allowed an extensive comparison of the internal stopping conditions of CMA-ES with OCD. In order to reproduce all the visualizations for the comparison, the following steps are required:</p>
 <ol style="list-style-type: decimal">
-<li>It has to be checked if all results of all the experiments are in place:</li>
+<li>It has to be checked if all results of all the experiments are in place. For this, the provided (or generated) logs have to be in the working directory of the current R workspace. Please note that the automatically generated logs have a date tag preceding date tag which has to be removed. Then the following function should return TRUE:</li>
 </ol>
 <pre class="r"><code>isComplete = checkLogCompleteness(usedFunctions = 1:24, usedDimensions = c(2, 5, 10, 20), nInstances = 15)</code></pre>
 <ol start="2" style="list-style-type: decimal">
