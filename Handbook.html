@@ -67,9 +67,9 @@ img {
 </div>
 
 
-<p>Topic: The Covariance Matrix Adaption - Evolution Strategy (CMA-ES) is a State-Of-The Art algorithm in single-objective black-box optimization. The interal stopping criterion has been fixed on sophisticated tuning and intuition. The goal of this project is a comparison of the internal stopping criterion to Online Convergence Detection (OCD). Originally, OCD has been designed for multiobjective optimization. Apparently, the first step is to make OCD suitable to be used as a stopping criterion within CMA-ES. For this project the CMA-ES implementation of Jakob Bossek has been used. Afterwards, CMA-ES with both stopping conditions has been applied to the 24 noiseless functions of the Black-Box Optimization Benchmarking (BBOB) testsest. The results of these experiments built the basis for a systematic comparison of OCD and the internal stopping criterion of CMA-ES. Additionally, the performance of CMA-ES under OCD has been compared to the Genetic Algorithm (GA) with OCD activated.</p>
-<p>This document gives the reader a short intro through the delopment process of the project and serves as a tutorial for executing the R-code necessary for generating results. Please note, that some code snippets can be executed for creating individual results that might serve a different purpose as the project does. However, the analysis is only executable for the supplied log files.</p>
-<p>A detailed interpretation of the project’s results can be found in the documentation “NAME HERE”.</p>
+<p>Topic: The Covariance Matrix Adaption - Evolution Strategy (CMA-ES) is a State-Of-The Art algorithm in single-objective black-box optimization. The interal stopping criteria have been fixed on sophisticated tuning and intuition. The goal of this project is a comparison of the internal stopping criteria to Online Convergence Detection (OCD). Originally, OCD has been designed for multiobjective optimization. Consequently, the first step is to make OCD suitable to be used as a stopping criterion within CMA-ES. For this project the CMA-ES implementation of Jakob Bossek has been used. Afterwards, CMA-ES with both the internal and the OCD stopping conditions have been applied to the 24 noiseless functions of the Black-Box Optimization Benchmarking (BBOB) testset. The results of these experiments build the basis for a systematic comparison of OCD and the internal stopping criterion of CMA-ES. Additionally, the performance of CMA-ES under OCD has been compared to the Genetic Algorithm (GA) with OCD activated and RandomSearch.</p>
+<p>This document gives the reader a short introduction through the development process of the project and serves as a tutorial for executing the R-code necessary for generating results. Please note that some code snippets can be executed for creating individual results that might serve a different purpose as the project does. However, the analysis is only executable for the supplied log files.</p>
+<p>A detailed interpretation of the project’s results can be found in the documentation “Application of Online Convergence Detection to the Covariance Matrix Adaptation Evolution Strategy on the Black-Box Optimization test bed”.</p>
 <div id="package-installation" class="section level2">
 <h2>Package installation</h2>
 <p>For installing and loading the required package that contains every necessary .R file, execute the following:</p>
@@ -90,8 +90,10 @@ library(cmaesbenchmarking)</code></pre>
 ?stopOnOCD</code></pre>
 </div>
 </div>
-<div id="delopmentment-process-of-project-2" class="section level2">
-<h2>Delopmentment process of project 2</h2>
+<div id="delopmentment-process-of-project-2" class="section level1">
+<h1>Delopmentment process of project 2</h1>
+<div id="phase-1-development-of-general-purpose-functions" class="section level2">
+<h2>Phase 1: Development of general purpose functions</h2>
 <div id="step-1-adapting-cma-es-and-implementing-ocd" class="section level3">
 <h3>Step 1: Adapting CMA-ES and implementing OCD</h3>
 <p>The first step was concerned with the implementation of OCD for CMA-ES. There are three performance indicator used for detecting convergence of CMA-ES:</p>
@@ -103,6 +105,7 @@ library(cmaesbenchmarking)</code></pre>
 <p>For detailed information about the necessary code adaptions of the CMA-ES source code and the implementation of OCD, please confer the following .R files:</p>
 <pre class="r"><code>stopOnOCD.R
 cmaes_custom.R</code></pre>
+<p>The original cmaes function was renamed to cmaes_custom.R in order to emphasize that we changed certain aspects of the default implementation for compatibility reasons with OCD and advanced logging functionality.</p>
 </div>
 <div id="step-2-running-bbob-experiments" class="section level3">
 <h3>Step 2: Running BBOB experiments</h3>
@@ -110,21 +113,23 @@ cmaes_custom.R</code></pre>
 <pre class="r"><code>?bbob_custom
 ?bbob_custom_parallel
 ?bbo_benchmarking</code></pre>
-<p>To start an experiment one has to implement an optimizer that is suitable to be passed as an argument to either bbob_custom or bbob_custom_parallel. There are already four optimizers ready for running an experiment. The user might use the CMAES optimizer. The code belows one examplary experiment setup which can be executed (caution: may take several hours). In this experiment, OCD with the performance indicator fitnessValue is used as a stopping criterion. The upper execution limit is fixed by 100000 function evaluations. Additionally, the algorithm might restart with OCD as a trigger if the upper limit is not reached yet. The experiment is performed over all 24 noiseless BBOB functions and 15 function instances each. The problem dimensions for each function are set to c(2, 5, 10, 20). The results of this experiment are written into log files of the directory specified by the field data_directoy.</p>
+<p>To start an experiment one has to implement an optimizer that is suitable to be passed as an argument to either bbob_custom or bbob_custom_parallel. There are already four optimizers ready for running an experiment. The user might use the CMAES optimizer. The code below shows one exemplary experiment setup which can be executed (caution: may take several hours). In this experiment, OCD with the performance indicator fitnessValue is used as a stopping criterion. The upper execution limit is fixed by 100,000 function evaluations. Additionally, the algorithm might restart with OCD as a trigger if the upper limit is not reached yet. The experiment is performed over all 24 noiseless BBOB functions and 15 function instances each. The problem dimensions for each function are set to c(2, 5, 10, 20). The results of this experiment are written into log files of the directory specified by the field data_directoy.</p>
 <pre class="r"><code>suppressWarnings(bbob_custom_parallel(optimizer = cmaesbenchmarking::optimizerCMAES, algorithm_id = &quot;CMAES_OCD&quot;, data_directory = &quot;OCD_RUN_0.0001_100&quot;, dimensions = c(2, 5, 10, 20), instances = 1:15, function_ids = 1:24, maxit = NULL, stopFitness = 1e-08, maxFE = 100000, max_restarts = 100000, OCD = TRUE, varLimit = 0.0001, nPreGen = 100, fitnessValue = TRUE, dispersion = FALSE, evolutionPath = FALSE, restart_multiplier = 2, restart_triggers = &quot;OCD&quot;))</code></pre>
-<p>In order to compare the internal stopping criterion of CMA-ES with OCD, experiments for the internal criterion and OCD were set up and executed (see experiment_setup.R for details of the setups). Also, in order to prove the reliability of the results, OCD was implemented and tested for the Genetic Algorithm (GA) and afterwards compared to the performance of CMA-ES. For detailed information about the necessary adaptions of the source code of the GA, please confer the following .R files:</p>
+<p>For detailed information about the necessary adaptions of the source code of the GA, please confer the following .R files:</p>
 <pre class="r"><code>rbga.R</code></pre>
+<p>For detailed information about the implementation of RS, please confer the following .R files:</p>
+<pre class="r"><code>random_search.R</code></pre>
 </div>
-<div id="step-3-reading-and-interpreting-results-of-an-bbob-experiment" class="section level3">
-<h3>Step 3: Reading and Interpreting results of an BBOB experiment</h3>
-<p>For loading/reading the output of an experiment stored in corresponding log files the user could make use of the following functions (Confer the corresponding help pages for detailed information on the necessary parameters and return objects):</p>
+<div id="step-3-reading-and-interpreting-results-of-the-bbob-experiments" class="section level3">
+<h3>Step 3: Reading and Interpreting results of the BBOB experiments</h3>
+<p>For loading/reading the output of an experiment stored in corresponding log files the user could make use of the following functions (confer the corresponding help pages for detailed information on the necessary parameters and return objects):</p>
 <pre class="r"><code># for a single log file
 result = readOutput(file)
 # for a number of log files
 allresult = loadAllResults(usedFunctions, usedDimensions, path, algorithmName)
 # parallel version for a number of log files
 allresult = loadAllResultsParallel(usedFunctions, usedDimensions, path, algorithmName)</code></pre>
-<p>All log files produced by the conducted experiments were loaded in a similar procedure. After loading all desired log files the user could use the function aggregateResults. This function takes a number of result objects and aggregates those results. For example the user might eecute something like the following:</p>
+<p>After loading all desired log files the user could use the function aggregateResults. This function takes a number of result objects and aggregates those results. For example the user might execute something like the following:</p>
 <pre class="r"><code># first variant
 result1 = readOutput(file1)
 result2 = readOutput(file2)
@@ -132,7 +137,7 @@ result1_result2_aggregated = aggregateResults(list(result1,result2))
 # second variant
 allresult_aggregated = loadAllResults(usedFunctions, usedDimensions, path, algorithmName)
 aggregateResults(allresults)</code></pre>
-<p>These function have been used for aggregating the results of the experiments conducted. Further interpretation of the results has been performed by the following functions (confer corresponding help pages for detailed information on those functions):</p>
+<p>These function can be used for aggregating the results of the experiments conducted. Further interpretation of the results can be performed by the following functions (confer corresponding help pages for detailed information on those functions):</p>
 <pre class="r"><code>?getAvgBestPerDimension
 ?getAvgBestPerFunction
 ?getAvgBestPerFunctionAndDimension
@@ -140,10 +145,20 @@ aggregateResults(allresults)</code></pre>
 ?getActiveFunctions
 ?extractECDFofFunctions
 ?averageConvergence</code></pre>
-<p>Finally, all results were ready for being analysed in a graphical manner.</p>
+<p>Finally, all results are ready for being analyzed in a graphical manner.</p>
 </div>
-<div id="step-4-analysing-results-of-an-bbob-experiments" class="section level3">
-<h3>Step 4: Analysing results of an BBOB experiments</h3>
+</div>
+<div id="phase-2-concrete-analysis-setup" class="section level2">
+<h2>Phase 2: Concrete analysis setup</h2>
+<div id="disclaimer-the-following-is-not-generally-applicable-and-therefore-not-part-of-the-exported-package.-it-only-applies-for-the-results-created-by-the-experiment-steps-in-experiment_setup.r-or-with-the-output-logs-provided-by-us." class="section level4">
+<h4>Disclaimer: The following is not generally applicable and therefore not part of the exported package. It only applies for the results created by the experiment steps in experiment_setup.R or with the output logs provided by us.</h4>
+</div>
+<div id="step-1-generation-of-algorithm-performance-logs" class="section level3">
+<h3>Step 1: Generation of algorithm performance logs</h3>
+<p>In order to compare the internal stopping criterion of CMA-ES with OCD, experiments for the internal criterion and OCD were set up and executed (see experiment_setup.R for details of the setups). Also, in order to prove the reliability of the results, OCD was implemented and tested for the Genetic Algorithm (GA) and afterwards compared to the performance of CMA-ES, the default GA and RS. In order to achieve meaningful results, multiple experiments were run for the different algorithms, different configurations of these and differing stopping conditions. For details of these experiments, please confer lines 7-270 in the R file experiment_setup.R.</p>
+</div>
+<div id="step-2-analysing-results-of-the-bbob-experiments." class="section level3">
+<h3>Step 2: Analysing results of the BBOB experiments.</h3>
 <p>The analysis functionality included in the package makes use of various plots the are based on the interpreted results of step 3. These visualizations allowed an extensive comparison of the internal stopping conditions of CMA-ES with OCD. In order to reproduce all the visualizations for the comparison, the following steps are required:</p>
 <ol style="list-style-type: decimal">
 <li>It has to be checked if all results of all the experiments are in place:</li>
@@ -155,6 +170,20 @@ aggregateResults(allresults)</code></pre>
 <pre class="r"><code>if (isComplete) createOutputImages(&quot;./resultImages&quot;)</code></pre>
 <p>This step might take several hours. As a result you will have a folder filled with plots and images necessary for analysing the stagnation behaviour of CMA-ES.</p>
 </div>
+</div>
+</div>
+<div id="overview-of-all-implemented-.r-files" class="section level1">
+<h1>Overview of all implemented .R files</h1>
+<ul>
+<li>customized_bbob.R - contains the functions bbob_custom, bbob_custom_parallel, optimizerCMAES, optimizerCMAESWithoutDef, optimizerRS and optimizerGA. The bbob_ functions are used to run a BBOB experiment and require an optimizer, for which 4 different optimizers are defined (and were used throughout the project).</li>
+<li>experiment_setup.R - contains the function calls of all BBOB experiments and the function call for the visual output generation.</li>
+<li>misc_visualization - contains visualizations for several graphs in the presentation and is not directly related to BBOB and CMA-ES.</li>
+<li>output_analysis_function - contains a single function concerned with the generation of output (graphs) in a specified folder.</li>
+<li>output_interpreter - contains functions to read data from logs, interpret it and aggregate from multiple logs.</li>
+<li>performance_benchmark - contains runtime performance benchmarks for parallel versions and the original BBOB implementation and the customized BBOB implementation; can only be run from top to bottom.</li>
+<li>random_search.R - contains an own implementation of Random Search.</li>
+<li>rbga.R - contains the Genetic Algorithm from the official package genalg with OCD compatibility and logging functionalities</li>
+</ul>
 </div>
 
 
